@@ -1,66 +1,109 @@
-"use client"; // si tu es en app router Next 13+
-import { useState, useEffect } from "react";
+"use client";
+import { useState } from "react";
 
-export default function Home() {
+export default function BookedSlotsPage() {
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
   const [name, setName] = useState("");
 
-  useEffect(() => {
-    // Récupère l'objet Telegram
-    if (typeof window !== "undefined") {
-      const tg = window.Telegram?.WebApp;
-      if (tg) {
-        tg.ready(); // indique que ton app est prête
-        tg.MainButton.text = "✅ Add slot";
-        tg.MainButton.show();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // 👉 Ici tu peux envoyer la requête vers ton backend ou ton bot
+    console.log("New booked slot:", { fromTime, toTime, name });
 
-        tg.MainButton.onClick(() => {
-          // Prépare les données
-          const data = {
-            from: fromTime,
-            to: toTime,
-            name: name,
-          };
-          // Envoie au bot
-          tg.sendData(JSON.stringify(data));
-        });
-      }
-    }
-  }, [fromTime, toTime, name]);
+    alert(
+      `✅ Booked slot added:\nFrom: ${fromTime}\nTo: ${toTime}\nName: ${name}`
+    );
+    setFromTime("");
+    setToTime("");
+    setName("");
+  };
 
   return (
-    <main style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h1>Booked slots</h1>
-      <p>Add new booked slot</p>
+    <div
+      style={{
+        fontFamily: "sans-serif",
+        padding: "20px",
+        maxWidth: "480px",
+        margin: "0 auto",
+      }}
+    >
+      <h1
+        style={{ fontSize: "26px", fontWeight: "bold", marginBottom: "20px" }}
+      >
+        Booked slots
+      </h1>
+      <h2 style={{ fontSize: "18px", marginBottom: "20px" }}>
+        Add new booked slot
+      </h2>
 
-      <label>From:</label>
-      <input
-        type="datetime-local"
-        value={fromTime}
-        onChange={(e) => setFromTime(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%" }}
-      />
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "6px" }}>FROM:</label>
+          <input
+            type="datetime-local"
+            value={fromTime}
+            onChange={(e) => setFromTime(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+            }}
+            required
+          />
+        </div>
 
-      <label>To:</label>
-      <input
-        type="datetime-local"
-        value={toTime}
-        onChange={(e) => setToTime(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%" }}
-      />
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "6px" }}>TO:</label>
+          <input
+            type="datetime-local"
+            value={toTime}
+            onChange={(e) => setToTime(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+            }}
+            required
+          />
+        </div>
 
-      <label>Name (optional):</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={{ display: "block", marginBottom: 20, width: "100%" }}
-      />
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "6px" }}>
+            Name (optional):
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+            }}
+            placeholder="e.g. Morning slot"
+          />
+        </div>
 
-      <p style={{ color: "gray" }}>
-        When you click the Telegram main button, the slot will be sent.
-      </p>
-    </main>
+        <button
+          type="submit"
+          style={{
+            padding: "12px 20px",
+            backgroundColor: "#0088cc",
+            color: "#fff",
+            fontSize: "16px",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          Add slot
+        </button>
+      </form>
+    </div>
   );
 }
