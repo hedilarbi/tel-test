@@ -1,4 +1,5 @@
 // pages/create-booked-slot.js
+"use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
