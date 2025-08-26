@@ -1,20 +1,17 @@
 // pages/create-booked-slot.js
 "use client";
+// pages/create-booked-slot.js
 import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
 
-// dd/mm/yyyy HH:MM
 function formatDDMMYYYY_HHMM(value) {
   if (!value) return "";
   const d = new Date(value);
   const pad = (n) => String(n).padStart(2, "0");
-  const dd = pad(d.getDate());
-  const mm = pad(d.getMonth() + 1);
-  const yyyy = d.getFullYear();
-  const HH = pad(d.getHours());
-  const MM = pad(d.getMinutes());
-  return `${dd}/${mm}/${yyyy} ${HH}:${MM}`;
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
 }
 
 export default function CreateBookedSlot() {
@@ -23,14 +20,12 @@ export default function CreateBookedSlot() {
   const [toVal, setToVal] = useState("");
   const [name, setName] = useState("");
 
-  // Make sure SDK is ready before using Telegram.WebApp
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp && !tg) {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       setTg(window.Telegram.WebApp);
     }
-  }, [tg]);
+  }, []);
 
-  // Configure MainButton when form changes
   useEffect(() => {
     if (!tg) return;
     tg.ready();
@@ -52,14 +47,11 @@ export default function CreateBookedSlot() {
         alert("Open this page from Telegram (Mini App).");
         return;
       }
-      if (!fromVal || !toVal) {
-        webapp.showAlert("Please fill both dates.");
-        return;
-      }
-      if (new Date(fromVal) >= new Date(toVal)) {
-        webapp.showAlert("End time must be after start time.");
-        return;
-      }
+      if (!fromVal || !toVal)
+        return webapp.showAlert("Please fill both dates.");
+      if (new Date(fromVal) >= new Date(toVal))
+        return webapp.showAlert("End time must be after start time.");
+
       const payload = {
         kind: "create_booked_slot",
         from: formatDDMMYYYY_HHMM(fromVal),
@@ -67,17 +59,19 @@ export default function CreateBookedSlot() {
         name: name?.trim() || null,
       };
 
+      // DEBUG feedback so you *see* something even if bot misses the update
+      webapp.showAlert("Submitting slot…");
+      console.log("Sending web_app_data:", payload);
+
       try {
         webapp.HapticFeedback?.impactOccurred("medium");
       } catch {}
-      console.log("Sending web_app_data:", payload);
       webapp.sendData(JSON.stringify(payload));
-      setTimeout(() => webapp.close(), 80); // small delay to ensure sendData flushes
+      setTimeout(() => webapp.close(), 150);
     },
     [tg, fromVal, toVal, name]
   );
 
-  // Hook MainButton click
   useEffect(() => {
     if (!tg) return;
     const handler = () => onSubmit();
@@ -87,7 +81,6 @@ export default function CreateBookedSlot() {
 
   return (
     <>
-      {/* Telegram WebApp SDK */}
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="afterInteractive"
@@ -104,7 +97,7 @@ export default function CreateBookedSlot() {
             Create booked slot
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Choose a start and end time. Optional name helps you remember it.
+            Choose a start and end time. Name is optional.
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-5">
@@ -152,7 +145,6 @@ export default function CreateBookedSlot() {
               />
             </div>
 
-            {/* Fallback submit button (when opened in a browser) */}
             <button
               type="submit"
               className="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 active:opacity-80"
