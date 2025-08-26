@@ -1,12 +1,11 @@
 // pages/create-booked-slot.js
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
 
-// dd/mm/yyyy HH:MM (local)
+// dd/mm/yyyy HH:MM
 function formatDDMMYYYY_HHMM(value) {
-  // value from <input type="datetime-local"> e.g. "2025-08-19T08:45"
   if (!value) return "";
   const d = new Date(value);
   const pad = (n) => String(n).padStart(2, "0");
@@ -19,60 +18,61 @@ function formatDDMMYYYY_HHMM(value) {
 }
 
 export default function CreateBookedSlot() {
+  const [tg, setTg] = useState(null);
   const [fromVal, setFromVal] = useState("");
   const [toVal, setToVal] = useState("");
   const [name, setName] = useState("");
 
-  const tg = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return window.Telegram?.WebApp || null;
-  }, []);
+  // Make sure SDK is ready before using Telegram.WebApp
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp && !tg) {
+      setTg(window.Telegram.WebApp);
+    }
+  }, [tg]);
 
-  // Toggle Telegram MainButton
+  // Configure MainButton when form changes
   useEffect(() => {
     if (!tg) return;
     tg.ready();
     tg.expand();
     tg.MainButton.setText("Save booked slot");
-    // Show MainButton only when form is valid
-    const canSubmit = Boolean(
+    const valid = Boolean(
       fromVal && toVal && new Date(fromVal) < new Date(toVal)
     );
-    if (canSubmit) tg.MainButton.show();
+    if (valid) tg.MainButton.show();
     else tg.MainButton.hide();
   }, [tg, fromVal, toVal]);
 
   const onSubmit = useCallback(
     (e) => {
       e?.preventDefault();
-      if (!tg) {
-        alert("Open this page from Telegram.");
+      const webapp =
+        tg || (typeof window !== "undefined" ? window.Telegram?.WebApp : null);
+      if (!webapp) {
+        alert("Open this page from Telegram (Mini App).");
         return;
       }
       if (!fromVal || !toVal) {
-        tg.showAlert("Please fill both dates.");
+        webapp.showAlert("Please fill both dates.");
         return;
       }
-      const fromTxt = formatDDMMYYYY_HHMM(fromVal);
-      const toTxt = formatDDMMYYYY_HHMM(toVal);
       if (new Date(fromVal) >= new Date(toVal)) {
-        tg.showAlert("End time must be after start time.");
+        webapp.showAlert("End time must be after start time.");
         return;
       }
-
       const payload = {
         kind: "create_booked_slot",
-        from: fromTxt,
-        to: toTxt,
+        from: formatDDMMYYYY_HHMM(fromVal),
+        to: formatDDMMYYYY_HHMM(toVal),
         name: name?.trim() || null,
       };
 
-      // a bit of UX
       try {
-        tg.HapticFeedback?.impactOccurred("medium");
+        webapp.HapticFeedback?.impactOccurred("medium");
       } catch {}
-      tg.sendData(JSON.stringify(payload));
-      tg.close(); // let Telegram close the webview after sending
+      console.log("Sending web_app_data:", payload);
+      webapp.sendData(JSON.stringify(payload));
+      setTimeout(() => webapp.close(), 80); // small delay to ensure sendData flushes
     },
     [tg, fromVal, toVal, name]
   );
@@ -87,15 +87,15 @@ export default function CreateBookedSlot() {
 
   return (
     <>
-      {/* Telegram WebApp SDK (safe to include) */}
+      {/* Telegram WebApp SDK */}
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
+        onLoad={() => setTg(window.Telegram?.WebApp ?? null)}
       />
       <Head>
         <title>Create booked slot</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* If you use CSP, be sure frame-ancestors allows Telegram domains */}
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
@@ -104,8 +104,7 @@ export default function CreateBookedSlot() {
             Create booked slot
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Choose a start and end time for your blocked period. Optional name
-            helps you remember it.
+            Choose a start and end time. Optional name helps you remember it.
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-5">
@@ -153,8 +152,7 @@ export default function CreateBookedSlot() {
               />
             </div>
 
-            {/* Fallback submit button (when opened in a browser).
-                In Telegram, users will usually tap the MainButton instead. */}
+            {/* Fallback submit button (when opened in a browser) */}
             <button
               type="submit"
               className="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 active:opacity-80"
@@ -163,7 +161,7 @@ export default function CreateBookedSlot() {
             </button>
 
             <div className="pt-2 text-center text-xs text-slate-400">
-              The bot will confirm in chat after saving.
+              You’ll get a confirmation message in the chat.
             </div>
           </form>
         </div>
