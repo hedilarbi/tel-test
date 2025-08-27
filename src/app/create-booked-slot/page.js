@@ -1,10 +1,20 @@
-// pages/create-booked-slot.js
-"use client";
+// pages/booked-slots.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
 
-// Convert <input type="datetime-local"> value to "dd/mm/yyyy HH:MM"
+// --- b64url decode helper to read ?s= param ---
+function b64urlDecode(b64url) {
+  if (!b64url) return "";
+  const pad = "=".repeat((4 - (b64url.length % 4)) % 4);
+  const base = (b64url + pad).replace(/-/g, "+").replace(/_/g, "/");
+  if (typeof window !== "undefined") {
+    return atob(base);
+  }
+  return Buffer.from(base, "base64").toString("utf-8");
+}
+
+// dd/mm/yyyy HH:MM (local)
 function formatDDMMYYYY_HHMM(value) {
   if (!value) return "";
   const d = new Date(value);
@@ -17,120 +27,154 @@ function formatDDMMYYYY_HHMM(value) {
   return `${dd}/${mm}/${yyyy} ${HH}:${MM}`;
 }
 
-export default function CreateBookedSlot() {
+export default function BookedSlots() {
+  const [slots, setSlots] = useState([]);
   const [fromVal, setFromVal] = useState("");
   const [toVal, setToVal] = useState("");
   const [name, setName] = useState("");
+
+  // Parse initial slots from ?s= (set by the bot)
+  useEffect(() => {
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      const s = qs.get("s");
+      if (!s) return;
+      const decoded = JSON.parse(b64urlDecode(s));
+      const arr = Array.isArray(decoded?.slots) ? decoded.slots : [];
+      setSlots(arr);
+    } catch (e) {
+      console.warn("Failed to parse slots param:", e);
+    }
+  }, []);
 
   const tg = useMemo(() => {
     if (typeof window === "undefined") return null;
     return window.Telegram?.WebApp || null;
   }, []);
 
-  // Configure Telegram UI
+  // Setup TG UI
   useEffect(() => {
     if (!tg) return;
-    try {
-      tg.ready();
-      tg.expand();
-      tg.BackButton.hide();
-      tg.MainButton.setText("Save booked slot");
-      tg.MainButton.enable();
-    } catch {}
+    tg.ready();
+    tg.expand();
   }, [tg]);
 
-  // Toggle MainButton visibility based on validity
-  useEffect(() => {
-    if (!tg) return;
-    const valid =
-      fromVal &&
-      toVal &&
-      !Number.isNaN(new Date(fromVal).getTime()) &&
-      !Number.isNaN(new Date(toVal).getTime()) &&
-      new Date(fromVal) < new Date(toVal);
-    if (valid) tg.MainButton.show();
-    else tg.MainButton.hide();
-  }, [tg, fromVal, toVal]);
-
-  const onSubmit = useCallback(
+  // --- CREATE ---
+  const onCreate = useCallback(
     (e) => {
       e?.preventDefault();
-
       if (!tg) {
-        alert("Open this page from Telegram (via the bot) to submit.");
+        alert("Open this page from Telegram.");
         return;
       }
       if (!fromVal || !toVal) {
         tg.showAlert("Please fill both dates.");
         return;
       }
+      const fromTxt = formatDDMMYYYY_HHMM(fromVal);
+      const toTxt = formatDDMMYYYY_HHMM(toVal);
       if (new Date(fromVal) >= new Date(toVal)) {
         tg.showAlert("End time must be after start time.");
         return;
       }
-      const fromTxt = formatDDMMYYYY_HHMM(fromVal);
-      const toTxt = formatDDMMYYYY_HHMM(toVal);
-
       const payload = {
         kind: "create_booked_slot",
         from: fromTxt,
         to: toTxt,
         name: name?.trim() || null,
       };
-
       try {
         tg.HapticFeedback?.impactOccurred("medium");
       } catch {}
-      try {
-        tg.sendData(JSON.stringify(payload)); // sends a service message to the bot
-      } catch (err) {
-        console.error("sendData error", err);
-        tg.showAlert("Could not send data to the bot.");
-        return;
-      }
-
-      // Closing is optional; Telegram will show “sending…” until bot replies.
-      try {
-        tg.close();
-      } catch {}
+      tg.sendData(JSON.stringify(payload));
+      tg.close(); // close after submit; bot will confirm in chat
     },
     [tg, fromVal, toVal, name]
   );
 
-  // Hook MainButton click
-  useEffect(() => {
-    if (!tg) return;
-    const handler = () => onSubmit();
-    tg.MainButton.onClick(handler);
-    return () => {
+  // --- DELETE ---
+  const onDelete = useCallback(
+    (id) => {
+      if (!tg) {
+        alert("Open this page from Telegram.");
+        return;
+      }
+      const payload = { kind: "delete_booked_slot", id };
       try {
-        tg.MainButton.offClick(handler);
+        tg.HapticFeedback?.impactOccurred("light");
       } catch {}
-    };
-  }, [tg, onSubmit]);
+      tg.sendData(JSON.stringify(payload));
+      tg.close(); // bot will confirm deletion in chat
+    },
+    [tg]
+  );
 
   return (
     <>
+      {/* Telegram WebApp SDK */}
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="beforeInteractive"
       />
       <Head>
-        <title>Create booked slot</title>
+        <title>Booked slots</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
-        <div className="mx-auto w-full max-w-md px-4 py-8">
+        <div className="mx-auto w-full max-w-lg px-4 py-8">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
-            Create booked slot
+            Booked slots
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Choose a start and end time for your blocked period. Optionally add
-            a name.
+            Manage your blocked periods: create new or delete existing ones.
           </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-5">
+          {/* Existing slots */}
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-base font-medium text-slate-800">Your slots</h2>
+            {slots.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">No slots yet.</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {slots.map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-start justify-between rounded-lg border border-slate-200 p-3"
+                  >
+                    <div className="text-sm">
+                      <div className="font-medium text-slate-800">
+                        {s.name || "—"}
+                      </div>
+                      <div className="mt-0.5 text-slate-600">
+                        {s.from} <span className="text-slate-400">→</span>{" "}
+                        {s.to}
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-400">
+                        id: {s.id}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onDelete(s.id)}
+                      className="ml-3 rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 active:bg-red-100"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Create form */}
+          <form
+            onSubmit={onCreate}
+            className="mt-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <h2 className="text-base font-medium text-slate-800">
+              New booked slot
+            </h2>
+
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
                 From
@@ -170,22 +214,22 @@ export default function CreateBookedSlot() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Airport run"
+                placeholder="e.g. School run"
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-slate-400"
               />
             </div>
 
-            {/* Fallback submit button (for direct browser open) */}
+            {/* Fallback submit (when opened in a regular browser) */}
             <button
               type="submit"
-              className="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 active:opacity-80"
+              className="mt-1 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 active:opacity-80"
             >
               Save booked slot
             </button>
 
-            <div className="pt-2 text-center text-xs text-slate-400">
-              You’ll get a confirmation from the bot after saving.
-            </div>
+            <p className="pt-1 text-center text-xs text-slate-400">
+              The bot will confirm in chat and show the updated menu.
+            </p>
           </form>
         </div>
       </div>
