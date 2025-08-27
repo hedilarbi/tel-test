@@ -17,7 +17,6 @@ export default function WATest() {
     tg.MainButton.show();
     const handler = () => {
       tg.sendData(JSON.stringify({ kind: "ping", ts: Date.now() }));
-      setTimeout(() => tg.close(), 150);
     };
     tg.MainButton.onClick(handler);
     return () => tg.MainButton.offClick(handler);
