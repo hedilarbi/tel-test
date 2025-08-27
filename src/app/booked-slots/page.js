@@ -37,8 +37,9 @@ export default function BookedSlots() {
   const [fromVal, setFromVal] = useState("");
   const [toVal, setToVal] = useState("");
   const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // --- Init WebApp & BackButton
+  // Init
   useEffect(() => {
     if (!tg) return;
     tg.ready();
@@ -49,38 +50,43 @@ export default function BookedSlots() {
     return () => tg.BackButton.offClick(onBack);
   }, [tg]);
 
-  // --- MainButton state
+  // MainButton state
   useEffect(() => {
     if (!tg) return;
-    tg.MainButton.setText("Create booked slot");
-    const ok = Boolean(fromVal && toVal && new Date(fromVal) < new Date(toVal));
+    tg.MainButton.setText(submitting ? "Submitting…" : "Create booked slot");
+    tg.MainButton.setParams?.({ is_active: !submitting });
+    const ok =
+      Boolean(fromVal && toVal && new Date(fromVal) < new Date(toVal)) &&
+      !submitting;
     if (ok) tg.MainButton.show();
     else tg.MainButton.hide();
-  }, [tg, fromVal, toVal]);
+  }, [tg, fromVal, toVal, submitting]);
 
-  // --- Robust sender (no auto-close)
-  const sendToBot = useCallback(
-    async (payload) => {
+  // Send & auto-close (IMPORTANT for Telegram to actually deliver `web_app_data`)
+  const sendAndClose = useCallback(
+    (payload) => {
       if (!tg) return;
       try {
         tg.HapticFeedback?.impactOccurred("medium");
       } catch {}
       try {
-        // extra debug in development
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[WebApp] sending", payload);
-          tg.showToast?.("Sending…");
-        }
         tg.sendData(JSON.stringify(payload));
-        // show a popup; user can close the webview with the Back button
         tg.showPopup?.({
-          title: "Done",
-          message: "Sent to bot ✅",
-          buttons: [{ id: "ok", type: "close", text: "OK" }],
+          title: "Sent",
+          message: "Sent to bot ✅\nYou can reopen from Filters.",
+          buttons: [{ id: "ok", type: "default", text: "OK" }],
         });
       } catch (e) {
         tg.showAlert?.("Failed to send data to bot.");
+        setSubmitting(false);
+        return;
       }
+      // Give clients time to flush, then CLOSE (this is what triggers delivery)
+      setTimeout(() => {
+        try {
+          tg.close();
+        } catch {}
+      }, 700);
     },
     [tg]
   );
@@ -92,21 +98,17 @@ export default function BookedSlots() {
       if (!fromVal || !toVal) return tg.showAlert("Please fill both dates.");
       if (new Date(fromVal) >= new Date(toVal))
         return tg.showAlert("End must be after start.");
+      setSubmitting(true);
+      tg.MainButton.showProgress?.();
       const payload = {
         kind: "create_booked_slot",
         from: toDDMMYYYY_HHMM(fromVal),
         to: toDDMMYYYY_HHMM(toVal),
         name: (name || "").trim() || null,
       };
-      // indicate progress on the MainButton
-      tg.MainButton.setText("Submitting…");
-      tg.MainButton.showProgress?.();
-      sendToBot(payload).finally(() => {
-        tg.MainButton.hideProgress?.();
-        tg.MainButton.setText("Create booked slot");
-      });
+      sendAndClose(payload);
     },
-    [tg, fromVal, toVal, name, sendToBot]
+    [tg, fromVal, toVal, name, sendAndClose]
   );
 
   useEffect(() => {
@@ -118,7 +120,9 @@ export default function BookedSlots() {
 
   const onDelete = (id) => {
     if (!tg) return;
-    sendToBot({ kind: "delete_booked_slot", id });
+    if (submitting) return;
+    setSubmitting(true);
+    sendAndClose({ kind: "delete_booked_slot", id });
   };
 
   return (
@@ -158,7 +162,8 @@ export default function BookedSlots() {
                   {s.id ? (
                     <button
                       onClick={() => onDelete(s.id)}
-                      className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100"
+                      disabled={submitting}
+                      className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100 disabled:opacity-50"
                     >
                       Delete
                     </button>
@@ -217,7 +222,8 @@ export default function BookedSlots() {
             {/* Fallback Submit for desktop testing */}
             <button
               type="submit"
-              className="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90"
+              disabled={submitting}
+              className="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow hover:opacity-90 disabled:opacity-60"
             >
               Create booked slot
             </button>
