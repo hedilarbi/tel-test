@@ -10,7 +10,6 @@ function fromQS() {
   const s = p.get("s");
   if (!s) return null;
   try {
-    // add removed padding back if present
     const pad = "=".repeat((4 - (s.length % 4)) % 4);
     const json = atob((s + pad).replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(json);
@@ -19,7 +18,6 @@ function fromQS() {
   }
 }
 
-// Convert <input type="datetime-local"> to dd/mm/yyyy HH:MM
 function toDDMMYYYY_HHMM(v) {
   if (!v) return "";
   const d = new Date(v);
@@ -35,7 +33,7 @@ export default function BookedSlots() {
     []
   );
   const seed = useMemo(() => fromQS(), []);
-  const [slots, setSlots] = useState(() => seed?.slots || []);
+  const [slots] = useState(() => seed?.slots || []);
   const [fromVal, setFromVal] = useState("");
   const [toVal, setToVal] = useState("");
   const [name, setName] = useState("");
@@ -56,9 +54,15 @@ export default function BookedSlots() {
       try {
         tg.HapticFeedback?.impactOccurred("medium");
       } catch {}
-      tg.sendData(JSON.stringify(payload));
-      // tiny delay to ensure payload is flushed before closing
-      setTimeout(() => tg.close(), 150);
+      try {
+        tg.sendData(JSON.stringify(payload));
+      } catch (e) {
+        // fallback UI hint if something goes wrong
+        tg.showAlert("Failed to send data to bot.");
+        return;
+      }
+      // Give Telegram a moment to flush before closing
+      setTimeout(() => tg.close(), 250);
     },
     [tg]
   );
@@ -74,7 +78,7 @@ export default function BookedSlots() {
         kind: "create_booked_slot",
         from: toDDMMYYYY_HHMM(fromVal),
         to: toDDMMYYYY_HHMM(toVal),
-        name: name.trim() || null,
+        name: (name || "").trim() || null,
       };
       sendAndClose(payload);
     },
