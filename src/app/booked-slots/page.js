@@ -26,6 +26,7 @@ export default function BookedSlotsPage() {
       });
       if (!r.ok) throw new Error(await r.text());
       const j = await r.json();
+      alert(JSON.stringify(j));
       setSlots(j.slots || []);
     } catch (e) {
       setErr(e.message || "Failed to load");
