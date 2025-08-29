@@ -50,12 +50,6 @@ export default function BookedSlotsPage() {
     tg.expand();
   }, [tg]);
 
-  useEffect(() => {
-    // Debug in Telegram in-app browser
-    console.log("API_BASE =", API_BASE);
-    console.log("initData length =", (initDataRaw || "").length);
-  }, [initDataRaw]);
-
   async function load() {
     if (!initDataRaw) return;
     setLoading(true);
@@ -65,7 +59,11 @@ export default function BookedSlotsPage() {
         headers: { Authorization: `tma ${initDataRaw}` },
         cache: "no-store",
       });
-      setSlots(j.slots || []);
+
+      const data = await j.json();
+      alert(JSON.stringify(data));
+
+      setSlots(data || []);
     } catch (e) {
       setErr(e.message || "Failed to load");
       setSlots([]);
