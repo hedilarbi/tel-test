@@ -60,10 +60,9 @@ export default function BookedSlotsPage() {
         cache: "no-store",
       });
 
-      const data = await j.json();
-      alert(JSON.stringify(data));
+      alert(JSON.stringify(j));
 
-      setSlots(data || []);
+      setSlots(j.slots || []);
     } catch (e) {
       setErr(e.message || "Failed to load");
       setSlots([]);
