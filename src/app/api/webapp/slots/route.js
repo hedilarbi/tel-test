@@ -10,7 +10,7 @@ export async function GET(req) {
     { cache: "no-store" }
   );
   const text = await upstream.text();
-  console.log(text);
+
   return new NextResponse(text, {
     status: upstream.status,
     headers: {

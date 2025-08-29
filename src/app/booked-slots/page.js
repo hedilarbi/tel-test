@@ -75,7 +75,13 @@ export default function BookedSlotsPage() {
   }
 
   async function onDelete(id) {
-    await fetch(`${API_BASE}/webapp/slots/${id}`, { method: "DELETE" });
+    await fetch(`${API_BASE}/webapp/slots/${id}`, {
+      method: "DELETE",
+      headers: {
+        "content-type": "application/json",
+        authorization: `tma ${initDataRaw}`,
+      },
+    });
     await load();
   }
 
