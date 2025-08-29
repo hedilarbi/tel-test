@@ -59,6 +59,7 @@ export default function BookedSlotsPage() {
     const r = await fetch(url, { cache: "no-store" }); // no headers -> no preflight
     const j = await r.json();
     setSlots(j.slots || []);
+    setLoading(false);
   }
 
   async function onCreate() {
