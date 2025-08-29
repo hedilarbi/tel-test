@@ -49,33 +49,33 @@ export default function BookedSlotsPage() {
     tg.ready();
     tg.expand();
   }, [tg]);
+  // replace API_BASE with "/api"
+  const API_BASE = "/api";
 
   async function load() {
-    if (!initDataRaw) return;
-    setLoading(true);
-    setErr("");
-    try {
-      // no Authorization header => no preflight => browser sends the GET
-      const url = `${API_BASE}/webapp/slots?tma=${encodeURIComponent(
-        initDataRaw
-      )}`;
-      const r = await fetch(url, { cache: "no-store" });
-      const ct = r.headers.get("content-type") || "";
-      const body = ct.includes("application/json")
-        ? await r.json()
-        : await r.text();
-      if (!r.ok)
-        throw new Error(
-          typeof body === "string" ? body.slice(0, 300) : JSON.stringify(body)
-        );
-      alert(body.slots.length());
-      setSlots(body.slots || []);
-    } catch (e) {
-      setErr(e.message || "Failed to load");
-      setSlots([]);
-    } finally {
-      setLoading(false);
-    }
+    const url = `${API_BASE}/webapp/slots?tma=${encodeURIComponent(
+      initDataRaw
+    )}`;
+    const r = await fetch(url, { cache: "no-store" }); // no headers -> no preflight
+    const j = await r.json();
+    setSlots(j.slots || []);
+  }
+
+  async function onCreate() {
+    await fetch(`${API_BASE}/webapp/slots`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `tma ${initDataRaw}`,
+      },
+      body: JSON.stringify({ start: fromVal, end: toVal, name: name || null }),
+    });
+    await load();
+  }
+
+  async function onDelete(id) {
+    await fetch(`${API_BASE}/webapp/slots/${id}`, { method: "DELETE" });
+    await load();
   }
 
   useEffect(() => {
@@ -83,59 +83,6 @@ export default function BookedSlotsPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initDataRaw]);
-
-  const onCreate = async (e) => {
-    e.preventDefault();
-    if (!fromVal || !toVal) return;
-    if (new Date(fromVal) >= new Date(toVal)) {
-      setErr("End time must be after start.");
-      return;
-    }
-    setSubmitting(true);
-    setErr("");
-    try {
-      // Server accepts "YYYY-MM-DDTHH:MM" (datetime-local) per our API parser
-      await fetchJSON(`${API_BASE}/webapp/slots`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `tma ${initDataRaw}`,
-        },
-        body: JSON.stringify({
-          start: fromVal,
-          end: toVal,
-          name: name || null,
-        }),
-      });
-      // Optional chat ping (only if your bot handles sendData)
-      // tg?.sendData(JSON.stringify({ kind: "create_booked_slot", from: fromVal, to: toVal, name: name || null }));
-      setFromVal("");
-      setToVal("");
-      setName("");
-      await load();
-    } catch (e) {
-      setErr(e.message || "Create failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const onDelete = async (id) => {
-    setSubmitting(true);
-    setErr("");
-    try {
-      await fetchJSON(`${API_BASE}/webapp/slots/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `tma ${initDataRaw}` },
-      });
-      // tg?.sendData(JSON.stringify({ kind: "delete_booked_slot", id }));
-      await load();
-    } catch (e) {
-      setErr(e.message || "Delete failed");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
