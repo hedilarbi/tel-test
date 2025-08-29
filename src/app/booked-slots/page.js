@@ -18,7 +18,7 @@ export default function BookedSlotsPage() {
   async function load() {
     if (!initDataRaw) return;
     setLoading(true);
-    setErr("");
+    setErr(" ");
     try {
       const r = await fetch(`${API_BASE}/webapp/slots`, {
         headers: { Authorization: `tma ${initDataRaw}` },
