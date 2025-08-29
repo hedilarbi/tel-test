@@ -55,14 +55,20 @@ export default function BookedSlotsPage() {
     setLoading(true);
     setErr("");
     try {
-      const j = await fetchJSON(`${API_BASE}/webapp/slots`, {
-        headers: { Authorization: `tma ${initDataRaw}` },
-        cache: "no-store",
-      });
-
-      alert(JSON.stringify(j));
-
-      setSlots(j.slots || []);
+      // no Authorization header => no preflight => browser sends the GET
+      const url = `${API_BASE}/webapp/slots?tma=${encodeURIComponent(
+        initDataRaw
+      )}`;
+      const r = await fetch(url, { cache: "no-store" });
+      const ct = r.headers.get("content-type") || "";
+      const body = ct.includes("application/json")
+        ? await r.json()
+        : await r.text();
+      if (!r.ok)
+        throw new Error(
+          typeof body === "string" ? body.slice(0, 300) : JSON.stringify(body)
+        );
+      setSlots(body.slots || []);
     } catch (e) {
       setErr(e.message || "Failed to load");
       setSlots([]);
