@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 const API_BASE = "https://dfcecd72e396.ngrok-free.app";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   const tma = req.nextUrl.searchParams.get("tma") || "";
   const upstream = await fetch(
     `${API_BASE}/webapp/slots?tma=${encodeURIComponent(tma)}`,
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   const auth = req.headers.get("authorization") || "";
   const body = await req.text();
   const upstream = await fetch(`${API_BASE}/webapp/slots`, {

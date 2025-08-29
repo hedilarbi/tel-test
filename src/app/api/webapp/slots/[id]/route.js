@@ -1,11 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 const API_BASE = "https://dfcecd72e396.ngrok-free.app";
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req, { params }) {
   const upstream = await fetch(`${API_BASE}/webapp/slots/${params.id}`, {
     method: "DELETE",
   });
