@@ -68,7 +68,7 @@ export default function BookedSlotsPage() {
         throw new Error(
           typeof body === "string" ? body.slice(0, 300) : JSON.stringify(body)
         );
-      alert(JSON.stringify(body));
+      alert(body.slots.length());
       setSlots(body.slots || []);
     } catch (e) {
       setErr(e.message || "Failed to load");
