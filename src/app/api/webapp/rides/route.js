@@ -1,12 +1,16 @@
 export async function GET(req) {
-  const tma = req.headers.get("x-telegram-init-data") || "";
+  const url = new URL(req.url);
+  const tma =
+    req.headers.get("x-telegram-init-data") ||
+    url.searchParams.get("tma") ||
+    "";
   if (!tma)
     return new Response(JSON.stringify({ error: "missing init data" }), {
       status: 401,
     });
 
   const upstream = process.env.API_URL; // points to your FastAPI via ngrok/etc
-  const qs = new URL(req.url).search; // pass ?page=…&limit=… if provided
+  const qs = url.search; // keep passing through ?page=&limit=&status=
 
   const r = await fetch(`${upstream}/webapp/rides${qs}`, {
     headers: {
