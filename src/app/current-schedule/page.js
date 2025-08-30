@@ -33,7 +33,13 @@ export default function CurrentSchedulePage() {
 
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
-  const initDataRaw = React.useMemo(() => tg?.initData ?? "", [tg]);
+  const [initDataRaw, setInitDataRaw] = React.useState("");
+  React.useEffect(() => {
+    if (!tg) return;
+    tg.ready?.();
+    // after ready(), initData is definitely available
+    setInitDataRaw(tg.initData || "");
+  }, [tg]);
 
   React.useEffect(() => {
     if (!tg) return;
@@ -48,7 +54,9 @@ export default function CurrentSchedulePage() {
       setLoading(true);
       setErr("");
       try {
-        const data = await fetchJSON("/api/webapp/rides"); // supports ?page=&limit= if you want
+        const data = await fetchJSON("/api/webapp/rides", {
+          headers: { "x-telegram-init-data": initDataRaw },
+        });
         const list = Array.isArray(data?.results) ? data.results : [];
         setRides(list);
       } catch (e) {
