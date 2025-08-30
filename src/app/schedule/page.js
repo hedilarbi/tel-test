@@ -32,6 +32,31 @@ export default function SchedulePage() {
   const [err, setErr] = React.useState("");
 
   React.useEffect(() => {
+    const wa =
+      typeof window !== "undefined" &&
+      window.Telegram &&
+      window.Telegram.WebApp;
+    if (wa) {
+      setInitDataRaw(wa.initData || "");
+      try {
+        wa.setHeaderColor && wa.setHeaderColor("#ffffff");
+      } catch {}
+      try {
+        wa.setBackgroundColor && wa.setBackgroundColor("#ffffff");
+      } catch {}
+      wa.BackButton && wa.BackButton.show && wa.BackButton.show();
+      const onBack = () => window.history.back();
+      wa.BackButton && wa.BackButton.onClick && wa.BackButton.onClick(onBack);
+      wa.ready && wa.ready();
+      return () => {
+        wa.BackButton &&
+          wa.BackButton.offClick &&
+          wa.BackButton.offClick(onBack);
+      };
+    }
+  }, []);
+
+  React.useEffect(() => {
     if (!initDataRaw) return;
     (async () => {
       setLoading(true);
@@ -83,7 +108,6 @@ export default function SchedulePage() {
       setBlocked(revert);
     }
   };
-
   const today = new Date();
   const sameMonth = (a, b) =>
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
