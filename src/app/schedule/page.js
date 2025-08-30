@@ -168,10 +168,12 @@ export default function SchedulePage() {
                   className={[
                     "h-10 rounded-lg text-sm transition border",
                     isBlocked
-                      ? "bg-amber-200/80 border-amber-300"
+                      ? "bg-red-200/80 border-red-300"
                       : "bg-white border-slate-200",
                     "hover:ring-2 hover:ring-slate-300",
-                    isToday ? "outline outline-2 outline-slate-700" : "",
+                    isToday
+                      ? " outline-2 outline-slate-700 bg-amber-200/80"
+                      : "",
                   ].join(" ")}
                   title={key}
                 >
@@ -184,7 +186,7 @@ export default function SchedulePage() {
 
         <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-amber-300" />{" "}
+            <span className="inline-block h-3 w-3 rounded bg-red-300" />{" "}
             <span>Blocked</span>
           </div>
           <div className="flex items-center gap-1">
