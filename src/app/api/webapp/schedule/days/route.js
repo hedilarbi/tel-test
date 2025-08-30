@@ -4,7 +4,7 @@ export async function GET(req) {
     return new Response(JSON.stringify({ error: "missing init data" }), {
       status: 401,
     });
-
+  console.log("TMA:", tma);
   const upstream = process.env.API_URL;
   const r = await fetch(`${upstream}/webapp/days`, {
     headers: {
