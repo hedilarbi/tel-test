@@ -44,15 +44,6 @@ export default function SchedulePage() {
       try {
         wa.setBackgroundColor && wa.setBackgroundColor("#ffffff");
       } catch {}
-      wa.BackButton && wa.BackButton.show && wa.BackButton.show();
-      const onBack = () => window.history.back();
-      wa.BackButton && wa.BackButton.onClick && wa.BackButton.onClick(onBack);
-      wa.ready && wa.ready();
-      return () => {
-        wa.BackButton &&
-          wa.BackButton.offClick &&
-          wa.BackButton.offClick(onBack);
-      };
     }
   }, []);
 
