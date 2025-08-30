@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-const API_BASE = "https://dfcecd72e396.ngrok-free.app";
+const API_BASE = process.env.API_URL;
 export const dynamic = "force-dynamic";
 
 export async function DELETE(_req, { params }) {
