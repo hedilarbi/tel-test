@@ -121,12 +121,12 @@ export default function BookedSlotsPage() {
     setSubmitting(true);
     setErr("");
     try {
-      await fetch(`${API_BASE}/webapp/slots/${id}`, {
+      await fetch(`/api/webapp/slots/${id}`, {
         method: "DELETE",
         headers: {
-          "content-type": "application/json",
           authorization: `tma ${initDataRaw}`,
         },
+        cache: "no-store",
       });
       await load();
     } catch (e) {
@@ -323,10 +323,6 @@ export default function BookedSlotsPage() {
               </section>
             ))
           )}
-        </div>
-
-        <div className="pt-6 text-center text-[10px] text-slate-400">
-          API: {API_BASE}
         </div>
       </div>
     </div>

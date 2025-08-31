@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
+
 const API_BASE = process.env.API_URL;
 export const dynamic = "force-dynamic";
 
-export async function DELETE(_req, { params }) {
-  const tma = _req.nextUrl.searchParams.get("tma") || "";
+export async function DELETE(req, { params }) {
+  const url = new URL(req.url);
+  const tma = url.searchParams.get("tma") || "";
+
+  // prefer incoming Authorization header; fallback to query ?tma=
+  const incomingAuth = req.headers.get("authorization") || "";
+  const authHeader = incomingAuth || (tma ? `tma ${tma}` : "");
+
   const upstream = await fetch(`${API_BASE}/webapp/slots/${params.id}`, {
     method: "DELETE",
     headers: {
-      "content-type": "application/json",
-      authorization: `tma ${tma}`,
+      ...(authHeader ? { authorization: authHeader } : {}),
+      // no need to set content-type for DELETE with no body
     },
+    cache: "no-store",
   });
+
   const text = await upstream.text();
   return new NextResponse(text, {
     status: upstream.status,
