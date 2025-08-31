@@ -6,19 +6,27 @@ import { useEffect, useMemo, useState } from "react";
 /* ---------- helpers ---------- */
 function parseMaybe(dt) {
   if (!dt) return null;
-  // ISO / HTML5: yyyy-mm-ddTHH:mm
-  const iso = new Date(dt);
-  if (!isNaN(iso.getTime())) return iso;
+  if (dt instanceof Date) return new Date(dt.getTime());
+  const s = String(dt).trim();
 
-  // dd/mm/yyyy HH:MM
-  const m = dt.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
-  if (!m) return null;
-  const dd = Number(m[1]),
-    mm = Number(m[2]),
-    yyyy = Number(m[3]),
-    HH = Number(m[4]),
-    MM = Number(m[5]);
-  return new Date(yyyy, mm - 1, dd, HH, MM, 0, 0);
+  // ISO / HTML5: 2025-09-01T05:00 or "2025-09-01 05:00"
+  if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(?::\d{2})?$/.test(s)) {
+    return new Date(s.replace(" ", "T"));
+  }
+
+  // dd/mm/yyyy or dd/mm/yyyy HH:MM
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
+  if (m) {
+    const dd = Number(m[1]);
+    const mm = Number(m[2]);
+    const yyyy = Number(m[3]);
+    const HH = Number(m[4] || 0);
+    const MM = Number(m[5] || 0);
+    return new Date(yyyy, mm - 1, dd, HH, MM, 0, 0);
+  }
+
+  // Unknown/ambiguous format → don't guess
+  return null;
 }
 
 function formatLong(dt) {
