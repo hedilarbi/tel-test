@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 /* ---------- helpers ---------- */
 function parseMaybe(dt) {
@@ -113,6 +114,7 @@ export default function BookedSlotsPage() {
           name: name || null,
         }),
       });
+      toast.success("Slot created successfully!");
       setName("");
       setFromVal("");
       setToVal("");
@@ -136,6 +138,7 @@ export default function BookedSlotsPage() {
         },
         cache: "no-store",
       });
+      toast.success("Slot deleted successfully!");
       await load();
     } catch (e) {
       setErr(e?.message || "Failed to delete.");
