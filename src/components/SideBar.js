@@ -5,10 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { MdDashboard } from "react-icons/md";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
-import { FaUsers, FaTicket } from "react-icons/fa6";
+import { FaUsers } from "react-icons/fa6";
 
 // Main navigation items
 const navItems = [
