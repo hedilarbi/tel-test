@@ -22,7 +22,14 @@ const navItems = [
     href: "/admin-dashboard/users",
     icon: <FaUsers />,
     ariaLabel: "Navigate to invitations",
-    matchPattern: /^\/utlisateurs(\/.*)?$/, // Matches /patients and /patients/[id]
+    matchPattern: /^\/admin-dashboard\/users(\/.*)?$/, // Matches /patients and /patients/[id]
+  },
+  {
+    label: "Filtres personnalisés",
+    href: "/admin-dashboard/custom-filters",
+    icon: <FaUsers />,
+    ariaLabel: "Navigate to invitations",
+    matchPattern: /^\/admin-dashboard\/custom-filters(\/.*)?$/, // Matches /patients and /patients/[id]
   },
 ];
 

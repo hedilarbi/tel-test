@@ -3,8 +3,8 @@ const API_BASE = process.env.API_URL;
 const ADMIN = process.env.ADMIN_TOKEN;
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const r = await fetch(`${API_BASE}/admin/users`, {
+export async function GET(_req, { params }) {
+  const r = await fetch(`${API_BASE}/admin/users/${params.id}/custom-filters`, {
     headers: { authorization: `admin ${ADMIN}` },
     cache: "no-store",
   });

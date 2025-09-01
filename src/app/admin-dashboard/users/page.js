@@ -1,42 +1,19 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
-  const [rows, setRows] = useState([]);
+  const [users, setUsers] = useState([]);
   const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(true);
 
   async function load() {
-    setLoading(true);
-    setErr("");
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("adminToken") || ""
-        : "";
-    if (!token) {
-      const v = prompt("Enter admin token");
-      if (v) localStorage.setItem("adminToken", v);
-    }
-    const useToken = localStorage.getItem("adminToken") || "";
     try {
-      const r = await fetch("/api/admin/users", {
-        headers: { "x-admin-token": useToken },
-        cache: "no-store",
-      });
+      setErr("");
+      const r = await fetch("/api/admin/users", { cache: "no-store" });
       const j = await r.json();
-      if (!r.ok) {
-        setErr(j?.detail || "Failed to load users");
-        setRows([]);
-      } else {
-        setRows(j.users || []);
-      }
+      setUsers(j.users || []);
     } catch (e) {
-      setErr(e?.message || "Network error");
-      setRows([]);
-    } finally {
-      setLoading(false);
+      setErr(e?.message || "Failed to load users.");
     }
   }
 
@@ -46,49 +23,52 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">Manage users</p>
+      <div className="mx-auto max-w-3xl px-4 py-6">
+        <h1 className="text-2xl font-semibold">Admin dashboard</h1>
+        <p className="text-sm text-slate-500">Users overview</p>
+
+        <div className="mt-4">
+          <Link
+            href="/admin-dashboard/custom-filters"
+            className="text-sm underline"
+          >
+            Manage custom filters
+          </Link>
+        </div>
 
         {err && (
           <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {String(err)}
+            {err}
           </div>
         )}
 
-        <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-100">
               <tr>
-                <th className="p-2 text-left">ID</th>
-                <th className="p-2 text-left">Telegram ID</th>
-                <th className="p-2 text-left">Active</th>
-                <th className="p-2 text-right">Actions</th>
+                <th className="px-3 py-2 text-left">ID</th>
+                <th className="px-3 py-2 text-left">Telegram ID</th>
+                <th className="px-3 py-2 text-left">Active</th>
+                <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {users.length === 0 ? (
                 <tr>
-                  <td className="p-3" colSpan={4}>
-                    Loading…
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td className="p-3" colSpan={4}>
-                    No users yet
+                  <td className="px-3 py-3" colSpan={4}>
+                    No users.
                   </td>
                 </tr>
               ) : (
-                rows.map((u) => (
+                users.map((u) => (
                   <tr key={u.telegram_id} className="border-t">
-                    <td className="p-2">{u.id}</td>
-                    <td className="p-2">{u.telegram_id}</td>
-                    <td className="p-2">{u.active ? "✅" : "❌"}</td>
-                    <td className="p-2 text-right">
+                    <td className="px-3 py-2">{u.telegram_id}</td>
+                    <td className="px-3 py-2">{u.telegram_id}</td>
+                    <td className="px-3 py-2">{u.active ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2">
                       <Link
+                        className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
                         href={`/admin-dashboard/users/${u.telegram_id}`}
-                        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs shadow-sm hover:bg-slate-50"
                       >
                         Manage
                       </Link>
@@ -98,18 +78,6 @@ export default function AdminDashboard() {
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-3 text-right">
-          <button
-            onClick={() => {
-              localStorage.removeItem("adminToken");
-              load();
-            }}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs shadow-sm hover:bg-slate-50"
-          >
-            Change admin token
-          </button>
         </div>
       </div>
     </div>

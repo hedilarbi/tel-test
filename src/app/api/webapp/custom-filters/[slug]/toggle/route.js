@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 const API_BASE = process.env.API_URL;
 export const dynamic = "force-dynamic";
 
-export async function GET(req) {
-  const tma = req.nextUrl.searchParams.get("tma") || "";
+export async function POST(req, { params }) {
+  const body = await req.text();
+  const tma = req.headers.get("authorization")?.replace(/^tma\s*/i, "") || "";
   const upstream = await fetch(
-    `${API_BASE}/webapp/custom-filters?tma=${encodeURIComponent(tma)}`,
+    `${API_BASE}/webapp/custom-filters/${params.slug}/toggle`,
     {
-      cache: "no-store",
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `tma ${tma}`,
+      },
+      body,
     }
   );
   const text = await upstream.text();
