@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 const API_BASE = process.env.API_URL;
-const ADMIN = process.env.ADMIN_TOKEN;
+const ADMIN = "supersecret_admin_token";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req, { params }) {
