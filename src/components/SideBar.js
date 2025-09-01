@@ -19,7 +19,7 @@ const navItems = [
 
   {
     label: "Utilisateurs",
-    href: "/users",
+    href: "/admin-dashboard/users",
     icon: <FaUsers />,
     ariaLabel: "Navigate to invitations",
     matchPattern: /^\/utlisateurs(\/.*)?$/, // Matches /patients and /patients/[id]
