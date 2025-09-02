@@ -64,9 +64,6 @@ export default function CustomFiltersPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto w-full max-w-md px-4 py-6">
         <h1 className="text-2xl font-semibold">Custom filters</h1>
-        <p className="text-sm text-slate-500">
-          Only your assigned filters are shown here.
-        </p>
 
         {err && (
           <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -80,29 +77,28 @@ export default function CustomFiltersPage() {
               No custom filters assigned.
             </div>
           ) : (
-            items.map((it) => (
-              <div
-                key={it.slug}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm"
-              >
-                <div>
-                  <div className="text-sm font-medium">{it.name}</div>
-                  <div className="text-xs text-slate-500">{it.slug}</div>
-                </div>
-                <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-                  <span className="text-slate-500">
-                    {it.enabled ? "On" : "Off"}
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={it.enabled}
-                    disabled={busy}
-                    onChange={(e) => toggle(it.slug, e.target.checked)}
-                    className="h-5 w-10 accent-slate-900"
-                  />
-                </label>
-              </div>
-            ))
+            items.map((it, index) => {
+              if (it.slug === "pickup_airport_reject")
+                return (
+                  <div key={index} className="border-b border-gray-400">
+                    <h2 className="font-semibold capitalize text-slate-700">
+                      Adding Airport to pickup Blacklist
+                    </h2>
+                    <p>
+                      Active/desactivate keyword &quot;airport&quot; on pickup
+                      blacklist (when active - bot will not accept airport
+                      pickups)
+                    </p>
+                    <button
+                      className="mt-2 rounded-md bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+                      onClick={() => toggle(it.slug, !it.enabled)}
+                      disabled={busy}
+                    >
+                      {it.enabled ? "Deactivate" : "Activate"}
+                    </button>
+                  </div>
+                );
+            })
           )}
         </div>
       </div>
