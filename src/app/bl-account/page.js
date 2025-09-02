@@ -1,113 +1,163 @@
-// app/bl-account/page.tsx
+// app/bl-account/page.jsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
-function getInitData() {
-  if (typeof window === "undefined") return "";
-  // Telegram Mini App initData (signed)
-  // @ts-ignore
-  const tg = window.Telegram?.WebApp;
-  const initData = tg?.initData || "";
-  return initData;
+function maskEmail(email) {
+  if (!email) return "";
+  const [local, domain = ""] = String(email).split("@");
+  if (local.length <= 4) return `${local}*****@${domain}`;
+  const head = local.slice(0, 4);
+  const tail = local.length > 8 ? local.slice(-4) : "";
+  return `${head}*****${tail}@${domain}`;
 }
 
 export default function BLAccountPage() {
   const [email, setEmail] = useState("");
+  const [existingEmail, setExistingEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [err, setErr] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState("");
+
+  const tg =
+    typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
+  const initDataRaw = useMemo(() => tg?.initData ?? "", [tg]);
+  const API_BASE = "/api";
 
   useEffect(() => {
-    // @ts-ignore
-    window.Telegram?.WebApp?.ready?.();
-    // @ts-ignore
-    window.Telegram?.WebApp?.expand?.();
-
-    const auth = "tma " + getInitData();
-    fetch("/api/bl-account", { headers: { Authorization: auth } })
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json()).error || "load_failed");
-        return r.json();
-      })
-      .then((d) => setEmail(d.email || ""))
-      .catch((e) => setErr(String(e?.message || e)))
-      .finally(() => setLoaded(true));
-  }, []);
-
-  async function onSave(e) {
-    e.preventDefault();
-    setErr(null);
-    setSaving(true);
+    if (!tg) return;
     try {
-      const auth = "tma " + getInitData();
-      const r = await fetch("/api/bl-account", {
+      tg.ready();
+      tg.expand();
+      tg.setBackgroundColor?.("#ffffff");
+      tg.setHeaderColor?.("#000000");
+    } catch {}
+  }, [tg]);
+
+  async function load() {
+    try {
+      setLoading(true);
+      setErr("");
+      const r = await fetch(
+        `${API_BASE}/bl-account?tma=${encodeURIComponent(initDataRaw)}`,
+        { cache: "no-store" }
+      );
+      // proxy guarantees JSON content-type
+      const j = await r.json().catch(() => ({}));
+      setExistingEmail(j?.email || "");
+    } catch (e) {
+      setErr(e?.message || "Failed to load.");
+      setExistingEmail("");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!initDataRaw) return;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initDataRaw]);
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please provide both email and password.");
+      return;
+    }
+    setSubmitting(true);
+    setErr("");
+    try {
+      const r = await fetch(`${API_BASE}/bl-account`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: auth },
+        headers: {
+          "content-type": "application/json",
+          authorization: `tma ${initDataRaw}`,
+        },
         body: JSON.stringify({ email, password }),
       });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(j?.detail?.error || j?.error || "save_failed");
-
-      // Optional UX: close popup or show toast
-      // @ts-ignore
-      window.Telegram?.WebApp?.showPopup?.({
-        title: "Saved",
-        message: "BL account saved.",
-        buttons: [{ type: "close" }],
-      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j?.error || "Save failed");
+      }
+      toast.success("BL account saved");
+      setExistingEmail(email);
       setPassword("");
     } catch (e) {
-      setErr(String(e?.message || e));
+      setErr(e?.message || "Failed to save.");
     } finally {
-      setSaving(false);
+      setSubmitting(false);
     }
   }
 
   return (
-    <div className="mx-auto max-w-md px-6 py-8">
-      <h1 className="text-4xl font-extrabold tracking-tight">BL account</h1>
-      <p className="mt-2 text-lg">Setup new BL account</p>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="mx-auto w-full max-w-md px-4 py-6">
+        <h1 className="text-3xl font-semibold tracking-tight">BL account</h1>
+        <p className="mt-1 text-sm text-slate-500">Setup new BL account</p>
 
-      <form onSubmit={onSave} className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">Email:</label>
-          <input
-            type="email"
-            placeholder="Please enter email"
-            className="w-full rounded-xl border p-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
+        {/* Current account (if any) */}
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+          <div className="font-medium text-slate-700">Current account</div>
+          <div className="mt-1 text-slate-600">
+            {loading
+              ? "Loading…"
+              : existingEmail
+              ? maskEmail(existingEmail)
+              : "—"}
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Password:</label>
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full rounded-xl border p-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-        </div>
-
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        {!loaded && <p className="text-sm opacity-70">Loading…</p>}
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-2xl px-5 py-3 shadow font-semibold border w-full"
+        {/* Form */}
+        <form
+          onSubmit={onSubmit}
+          className="mt-5 space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
-          {saving ? "Saving…" : "Save account"}
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Email:
+            </label>
+            <input
+              type="email"
+              placeholder="Please enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm outline-none focus:ring-2 focus:ring-slate-400"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Password:
+            </label>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm outline-none focus:ring-2 focus:ring-slate-400"
+              required
+            />
+          </div>
+
+          {err && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+              {err}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:opacity-60"
+          >
+            Save account
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

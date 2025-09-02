@@ -3,37 +3,49 @@
 const API_BASE = process.env.API_URL;
 
 export default async function handler(req, res) {
-  const auth = req.headers.authorization || ""; // expect 'tma <initData>'
+  const auth = req.headers.authorization || "";
   const url = `${API_BASE}/webapp/bl-account`;
 
   try {
     if (req.method === "GET") {
-      const r = await fetch(
-        url +
-          (req.query.tma
-            ? `?tma=${encodeURIComponent(String(req.query.tma))}`
-            : ""),
+      const tma = typeof req.query.tma === "string" ? req.query.tma : "";
+      const upstream = await fetch(
+        url + (tma ? `?tma=${encodeURIComponent(tma)}` : ""),
         {
           headers: { Authorization: auth },
           cache: "no-store",
         }
       );
-      const data = await r.json();
-      res.status(r.status).json(data);
+      const text = await upstream.text();
+      res.status(upstream.status);
+      res.setHeader(
+        "content-type",
+        upstream.headers.get("content-type") || "application/json"
+      );
+      res.end(text);
       return;
     }
 
     if (req.method === "POST") {
-      const r = await fetch(url, {
+      const bodyText =
+        typeof req.body === "string"
+          ? req.body
+          : JSON.stringify(req.body || {});
+      const upstream = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "content-type": "application/json",
           Authorization: auth,
         },
-        body: JSON.stringify(req.body),
+        body: bodyText,
       });
-      const data = await r.json().catch(() => ({}));
-      res.status(r.status).json(data);
+      const text = await upstream.text();
+      res.status(upstream.status);
+      res.setHeader(
+        "content-type",
+        upstream.headers.get("content-type") || "application/json"
+      );
+      res.end(text);
       return;
     }
 
