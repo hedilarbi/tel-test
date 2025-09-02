@@ -64,6 +64,7 @@ export default function AdminDashboard() {
                 users.map((u) => (
                   <tr key={u.telegram_id} className="border-t">
                     <td className="px-3 py-2">{u.telegram_id}</td>
+                    <td className="px-3 py-2">{u.telegram_id}</td>
                     <td className="px-3 py-2">{u.email}</td>
                     <td className="px-3 py-2">{u.active ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">
