@@ -24,7 +24,7 @@ export default function BLAccountPage() {
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const initDataRaw = useMemo(() => tg?.initData ?? "", [tg]);
-  const API_BASE = "/api";
+  const API_BASE = "/api/webapp";
 
   useEffect(() => {
     if (!tg) return;
@@ -80,7 +80,14 @@ export default function BLAccountPage() {
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        throw new Error(j?.error || "Save failed");
+        const msg =
+          j?.detail?.error ||
+          j?.error ||
+          (Array.isArray(j?.detail)
+            ? j.detail.map((d) => d.msg).join(", ")
+            : "") ||
+          `HTTP ${r.status}`;
+        throw new Error(msg || "Save failed");
       }
       toast.success("BL account saved");
       setExistingEmail(email);

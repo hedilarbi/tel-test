@@ -1,5 +1,4 @@
-// pages/api/bl-account.ts
-
+// pages/api/bl-account.js
 const API_BASE = process.env.API_URL;
 
 export default async function handler(req, res) {
@@ -27,18 +26,20 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      // forward header AND allow ?tma= fallback (matches API’s _require_user_from_any)
+      const tma = typeof req.query.tma === "string" ? req.query.tma : "";
       const bodyText =
         typeof req.body === "string"
           ? req.body
           : JSON.stringify(req.body || {});
-      const upstream = await fetch(url, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          Authorization: auth,
-        },
-        body: bodyText,
-      });
+      const upstream = await fetch(
+        url + (tma ? `?tma=${encodeURIComponent(tma)}` : ""),
+        {
+          method: "POST",
+          headers: { "content-type": "application/json", Authorization: auth },
+          body: bodyText,
+        }
+      );
       const text = await upstream.text();
       res.status(upstream.status);
       res.setHeader(
