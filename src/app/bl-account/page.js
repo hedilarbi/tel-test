@@ -17,7 +17,7 @@ export default function BLAccountPage() {
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [err, setErr] = (useState < string) | (null > null);
+  const [err, setErr] = useState(null);
 
   useEffect(() => {
     // @ts-ignore
