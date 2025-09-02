@@ -80,7 +80,7 @@ export default function CustomFiltersPage() {
             items.map((it, index) => {
               if (it.slug === "pickup_airport_reject")
                 return (
-                  <div key={index} className="border-b border-gray-400">
+                  <div key={index} className="border-b border-gray-400 pb-4">
                     <h2 className="font-semibold capitalize text-slate-700">
                       Adding Airport to pickup Blacklist
                     </h2>
