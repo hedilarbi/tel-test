@@ -23,7 +23,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mx-auto w-full px-4 py-6">
         <h1 className="text-2xl font-semibold">Admin dashboard</h1>
         <p className="text-sm text-slate-500">Users overview</p>
 
@@ -49,8 +49,7 @@ export default function AdminDashboard() {
                 <th className="px-3 py-2 text-left">Telegram ID</th>
                 <th className="px-3 py-2 text-left">Name</th>
                 <th className="px-3 py-2 text-left">Username</th>
-                <th className="px-3 py-2 text-left">Lang</th>
-                <th className="px-3 py-2 text-left">Premium</th>
+
                 <th className="px-3 py-2 text-left">First seen</th>
                 <th className="px-3 py-2 text-left">Last seen</th>
                 <th className="px-3 py-2 text-left">Email</th>
