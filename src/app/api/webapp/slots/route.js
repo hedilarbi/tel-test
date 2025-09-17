@@ -14,7 +14,7 @@ export async function GET(req) {
   );
   console.log("upstream response:", upstream);
   const text = await upstream.text();
-
+  console.log(text);
   return new NextResponse(text, {
     status: upstream.status,
     headers: {
