@@ -71,9 +71,6 @@ export default function AdminDashboard() {
                       {tg.username ? `@${tg.username}` : "—"}
                     </td>
 
-                    <td className="px-3 py-2">
-                      {tg.is_premium ? "Yes ⭐" : "No"}
-                    </td>
                     <td className="px-3 py-2">{tg.first_seen || "—"}</td>
                     <td className="px-3 py-2">{tg.last_seen || "—"}</td>
                     <td className="px-3 py-2">{u.email || "—"}</td>
