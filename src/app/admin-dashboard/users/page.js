@@ -70,7 +70,7 @@ export default function AdminDashboard() {
                     <td className="px-3 py-2">
                       {tg.username ? `@${tg.username}` : "—"}
                     </td>
-                    <td className="px-3 py-2">{tg.language_code || "—"}</td>
+
                     <td className="px-3 py-2">
                       {tg.is_premium ? "Yes ⭐" : "No"}
                     </td>
