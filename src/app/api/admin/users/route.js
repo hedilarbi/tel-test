@@ -9,6 +9,7 @@ export async function GET() {
     cache: "no-store",
   });
   const text = await r.text();
+  console.log(text);
   return new NextResponse(text, {
     status: r.status,
     headers: {
