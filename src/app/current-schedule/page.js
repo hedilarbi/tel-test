@@ -51,12 +51,17 @@ export default function CurrentSchedulePage() {
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const [initDataRaw, setInitDataRaw] = React.useState("");
+  const [botId, setBotId] = React.useState("");
 
   React.useEffect(() => {
     if (!tg) return;
     tg.ready?.();
     tg.expand?.();
     setInitDataRaw(tg.initData || "");
+    try {
+      const bid = new URLSearchParams(window.location.search).get("bot_id");
+      if (bid) setBotId(bid);
+    } catch {}
   }, [tg]);
 
   React.useEffect(() => {
@@ -65,7 +70,8 @@ export default function CurrentSchedulePage() {
       setLoading(true);
       setErr("");
       try {
-        const data = await fetchJSON("/api/webapp/rides", {
+        const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+        const data = await fetchJSON(`/api/webapp/rides${qs}`, {
           headers: { "x-telegram-init-data": initDataRaw },
         });
         const list = Array.isArray(data?.results) ? data.results : [];
@@ -76,7 +82,7 @@ export default function CurrentSchedulePage() {
         setLoading(false);
       }
     })();
-  }, [initDataRaw]);
+  }, [initDataRaw, botId]);
 
   // group by day of pickup
   const grouped = React.useMemo(() => {

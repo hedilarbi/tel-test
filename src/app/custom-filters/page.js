@@ -9,7 +9,16 @@ export default function CustomFiltersPage() {
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const initDataRaw = useMemo(() => tg?.initData ?? "", [tg]);
+  const botId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("bot_id") || "";
+  }, []);
   const API_BASE = "/api";
+  const withBotId = (url) => {
+    if (!botId) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}bot_id=${encodeURIComponent(botId)}`;
+  };
 
   useEffect(() => {
     if (tg) {
@@ -24,9 +33,11 @@ export default function CustomFiltersPage() {
     try {
       setErr("");
       const r = await fetch(
-        `${API_BASE}/webapp/custom-filters?tma=${encodeURIComponent(
-          initDataRaw
-        )}`,
+        withBotId(
+          `${API_BASE}/webapp/custom-filters?tma=${encodeURIComponent(
+            initDataRaw
+          )}`
+        ),
         { cache: "no-store" }
       );
       const j = await r.json();
@@ -40,14 +51,17 @@ export default function CustomFiltersPage() {
   async function toggle(slug, next) {
     try {
       setBusy(true);
-      await fetch(`${API_BASE}/webapp/custom-filters/${slug}/toggle`, {
+      await fetch(
+        withBotId(`${API_BASE}/webapp/custom-filters/${slug}/toggle`),
+        {
         method: "POST",
         headers: {
           "content-type": "application/json",
           authorization: `tma ${initDataRaw}`,
         },
         body: JSON.stringify({ enabled: !!next }),
-      });
+        }
+      );
       await load();
     } catch (e) {
       setErr(e?.message || "Toggle failed.");

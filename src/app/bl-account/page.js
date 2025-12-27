@@ -24,7 +24,16 @@ export default function BLAccountPage() {
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const initDataRaw = useMemo(() => tg?.initData ?? "", [tg]);
+  const botId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("bot_id") || "";
+  }, []);
   const API_BASE = "/api/webapp";
+  const withBotId = (url) => {
+    if (!botId) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}bot_id=${encodeURIComponent(botId)}`;
+  };
 
   useEffect(() => {
     if (!tg) return;
@@ -41,7 +50,9 @@ export default function BLAccountPage() {
       setLoading(true);
       setErr("");
       const r = await fetch(
-        `${API_BASE}/bl-account?tma=${encodeURIComponent(initDataRaw)}`,
+        withBotId(
+          `${API_BASE}/bl-account?tma=${encodeURIComponent(initDataRaw)}`
+        ),
         { cache: "no-store" }
       );
       // proxy guarantees JSON content-type
@@ -70,7 +81,7 @@ export default function BLAccountPage() {
     setSubmitting(true);
     setErr("");
     try {
-      const r = await fetch(`${API_BASE}/bl-account`, {
+      const r = await fetch(withBotId(`${API_BASE}/bl-account`), {
         method: "POST",
         headers: {
           "content-type": "application/json",

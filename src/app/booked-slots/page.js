@@ -65,6 +65,10 @@ export default function BookedSlotsPage() {
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const initDataRaw = useMemo(() => tg?.initData ?? "", [tg]);
+  const botId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("bot_id") || "";
+  }, []);
 
   useEffect(() => {
     if (!tg) return;
@@ -77,14 +81,19 @@ export default function BookedSlotsPage() {
   }, [tg]);
 
   const API_BASE = "/api";
+  const withBotId = (url) => {
+    if (!botId) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}bot_id=${encodeURIComponent(botId)}`;
+  };
 
   async function load() {
     try {
       setLoading(true);
       setErr("");
-      const url = `${API_BASE}/webapp/slots?tma=${encodeURIComponent(
-        initDataRaw
-      )}`;
+      const url = withBotId(
+        `${API_BASE}/webapp/slots?tma=${encodeURIComponent(initDataRaw)}`
+      );
       const r = await fetch(url, { cache: "no-store" });
       const j = await r.json();
       setSlots(j.slots || []);
@@ -102,7 +111,7 @@ export default function BookedSlotsPage() {
     setSubmitting(true);
     setErr("");
     try {
-      await fetch(`${API_BASE}/webapp/slots`, {
+      await fetch(withBotId(`${API_BASE}/webapp/slots`), {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -131,7 +140,7 @@ export default function BookedSlotsPage() {
     setSubmitting(true);
     setErr("");
     try {
-      await fetch(`/api/webapp/slots/${id}`, {
+      await fetch(withBotId(`/api/webapp/slots/${id}`), {
         method: "DELETE",
         headers: {
           authorization: `tma ${initDataRaw}`,

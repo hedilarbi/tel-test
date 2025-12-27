@@ -35,8 +35,12 @@ export async function HEAD() {
 export async function GET(req) {
   const auth = req.headers.get("authorization") || "";
   const tma = req.nextUrl.searchParams.get("tma") || "";
+  const botId = req.nextUrl.searchParams.get("bot_id") || "";
+  const qs = new URLSearchParams();
+  if (tma) qs.set("tma", tma);
+  if (botId) qs.set("bot_id", botId);
   const fwdUrl = `${API_BASE}/webapp/bl-account${
-    tma ? `?tma=${encodeURIComponent(tma)}` : ""
+    qs.toString() ? `?${qs.toString()}` : ""
   }`;
 
   console.log(
@@ -71,8 +75,12 @@ export async function GET(req) {
 export async function POST(req) {
   const auth = req.headers.get("authorization") || "";
   const tma = req.nextUrl.searchParams.get("tma") || "";
+  const botId = req.nextUrl.searchParams.get("bot_id") || "";
+  const qs = new URLSearchParams();
+  if (tma) qs.set("tma", tma);
+  if (botId) qs.set("bot_id", botId);
   const fwdUrl = `${API_BASE}/webapp/bl-account${
-    tma ? `?tma=${encodeURIComponent(tma)}` : ""
+    qs.toString() ? `?${qs.toString()}` : ""
   }`;
   const bodyText = await req.text();
 

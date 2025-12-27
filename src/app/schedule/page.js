@@ -23,6 +23,7 @@ async function fetchJSON(url, options = {}) {
 
 export default function SchedulePage() {
   const [initDataRaw, setInitDataRaw] = React.useState("");
+  const [botId, setBotId] = React.useState("");
   const [viewDate, setViewDate] = React.useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -39,6 +40,10 @@ export default function SchedulePage() {
     if (wa) {
       setInitDataRaw(wa.initData || "");
       try {
+        const bid = new URLSearchParams(window.location.search).get("bot_id");
+        if (bid) setBotId(bid);
+      } catch {}
+      try {
         wa.setHeaderColor && wa.setHeaderColor("#ffffff");
       } catch {}
       try {
@@ -53,7 +58,8 @@ export default function SchedulePage() {
       setLoading(true);
       setErr("");
       try {
-        const j = await fetchJSON(`/api/webapp/schedule/days`, {
+        const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+        const j = await fetchJSON(`/api/webapp/schedule/days${qs}`, {
           headers: { "x-telegram-init-data": initDataRaw },
         });
         setBlocked(new Set(j?.days || []));
@@ -64,7 +70,7 @@ export default function SchedulePage() {
         setLoading(false);
       }
     })();
-  }, [initDataRaw]);
+  }, [initDataRaw, botId]);
 
   const grid = React.useMemo(() => {
     const first = firstDayOfMonth(viewDate);
@@ -85,7 +91,8 @@ export default function SchedulePage() {
     blocked.has(key) ? optimistic.delete(key) : optimistic.add(key);
     setBlocked(optimistic);
     try {
-      await fetchJSON(`/api/webapp/schedule/toggle`, {
+      const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+      await fetchJSON(`/api/webapp/schedule/toggle${qs}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

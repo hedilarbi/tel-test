@@ -3,8 +3,10 @@ const API_BASE = process.env.API_URL;
 const ADMIN = "supersecret_admin_token";
 export const dynamic = "force-dynamic";
 
-export async function GET(_req, { params }) {
-  const r = await fetch(`${API_BASE}/admin/users/${params.id}/custom-filters`, {
+export async function GET(req, { params }) {
+  const botId = req.nextUrl.searchParams.get("bot_id") || "";
+  const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+  const r = await fetch(`${API_BASE}/admin/users/${params.id}/custom-filters${qs}`, {
     headers: { authorization: `admin ${ADMIN}` },
     cache: "no-store",
   });

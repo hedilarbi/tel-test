@@ -46,6 +46,7 @@ export default function AdminDashboard() {
           <table className="w-full text-sm">
             <thead className="bg-slate-100">
               <tr>
+                <th className="px-3 py-2 text-left">Bot ID</th>
                 <th className="px-3 py-2 text-left">Telegram ID</th>
                 <th className="px-3 py-2 text-left">Name</th>
                 <th className="px-3 py-2 text-left">Username</th>
@@ -63,8 +64,13 @@ export default function AdminDashboard() {
                 const name =
                   [tg.first_name, tg.last_name].filter(Boolean).join(" ") ||
                   "—";
+                const botId = u.bot_id || "";
+                const botQuery = botId
+                  ? `?bot_id=${encodeURIComponent(botId)}`
+                  : "";
                 return (
-                  <tr key={u.telegram_id} className="border-t">
+                  <tr key={`${botId}-${u.telegram_id}`} className="border-t">
+                    <td className="px-3 py-2">{botId || "—"}</td>
                     <td className="px-3 py-2">{u.telegram_id}</td>
                     <td className="px-3 py-2">{name}</td>
                     <td className="px-3 py-2">
@@ -78,7 +84,7 @@ export default function AdminDashboard() {
                     <td className="px-3 py-2">
                       <Link
                         className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
-                        href={`/admin-dashboard/users/${u.telegram_id}`}
+                        href={`/admin-dashboard/users/${u.telegram_id}${botQuery}`}
                       >
                         Manage
                       </Link>

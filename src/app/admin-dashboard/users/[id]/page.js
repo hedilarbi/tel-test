@@ -1,10 +1,17 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function ManageUser() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const uid = params.id;
+  const botId = searchParams.get("bot_id") || "";
+  const withBotId = (url) => {
+    if (!botId) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}bot_id=${encodeURIComponent(botId)}`;
+  };
 
   const [data, setData] = useState({ assigned: [], all: [] });
   const [formulas, setFormulas] = useState([]); // ⬅️ new
@@ -14,7 +21,7 @@ export default function ManageUser() {
   async function loadFilters() {
     try {
       setErr("");
-      const r = await fetch(`/api/admin/users/${uid}/custom-filters`, {
+      const r = await fetch(withBotId(`/api/admin/users/${uid}/custom-filters`), {
         cache: "no-store",
       });
       const j = await r.json();
@@ -27,7 +34,7 @@ export default function ManageUser() {
   async function loadFormulas() {
     try {
       setErr("");
-      const r = await fetch(`/api/admin/users/${uid}/endtime-formulas`, {
+      const r = await fetch(withBotId(`/api/admin/users/${uid}/endtime-formulas`), {
         cache: "no-store",
       });
       const j = await r.json();
@@ -40,7 +47,7 @@ export default function ManageUser() {
   useEffect(() => {
     loadFilters();
     loadFormulas();
-  }, [uid]);
+  }, [uid, botId]);
 
   const assignedSlugs = new Set((data.assigned || []).map((a) => a.slug));
   const hasElse = useMemo(
@@ -51,7 +58,7 @@ export default function ManageUser() {
   async function assign(slug) {
     setBusy(true);
     try {
-      await fetch(`/api/admin/users/${uid}/custom-filters/${slug}`, {
+      await fetch(withBotId(`/api/admin/users/${uid}/custom-filters/${slug}`), {
         method: "POST",
       });
       await loadFilters();
@@ -65,7 +72,7 @@ export default function ManageUser() {
   async function unassign(slug) {
     setBusy(true);
     try {
-      await fetch(`/api/admin/users/${uid}/custom-filters/${slug}`, {
+      await fetch(withBotId(`/api/admin/users/${uid}/custom-filters/${slug}`), {
         method: "DELETE",
       });
       await loadFilters();
@@ -79,7 +86,7 @@ export default function ManageUser() {
   async function toggleUser(slug, next) {
     setBusy(true);
     try {
-      await fetch(`/api/admin/users/${uid}/custom-filters/${slug}`, {
+      await fetch(withBotId(`/api/admin/users/${uid}/custom-filters/${slug}`), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ enabled: !!next }),
@@ -96,7 +103,7 @@ export default function ManageUser() {
   async function addFormula(payload) {
     setBusy(true);
     try {
-      await fetch(`/api/admin/users/${uid}/endtime-formulas`, {
+      await fetch(withBotId(`/api/admin/users/${uid}/endtime-formulas`), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
@@ -112,7 +119,7 @@ export default function ManageUser() {
   async function deleteFormula(fid) {
     setBusy(true);
     try {
-      await fetch(`/api/admin/users/${uid}/endtime-formulas/${fid}`, {
+      await fetch(withBotId(`/api/admin/users/${uid}/endtime-formulas/${fid}`), {
         method: "DELETE",
       });
       await loadFormulas();
