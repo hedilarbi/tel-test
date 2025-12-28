@@ -5,6 +5,7 @@ import Link from "next/link";
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [err, setErr] = useState("");
+  const [busyBot, setBusyBot] = useState(false);
 
   async function load() {
     try {
@@ -20,6 +21,24 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
   }, []);
+
+  async function toggleBotActive(botId, next) {
+    if (!botId) return;
+    setBusyBot(true);
+    try {
+      setErr("");
+      await fetch(`/api/admin/bots/${encodeURIComponent(botId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ admin_active: !!next }),
+      });
+      await load();
+    } catch (e) {
+      setErr(e?.message || "Failed to update bot activation.");
+    } finally {
+      setBusyBot(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -55,6 +74,7 @@ export default function AdminDashboard() {
                 <th className="px-3 py-2 text-left">Last seen</th>
                 <th className="px-3 py-2 text-left">Email</th>
                 <th className="px-3 py-2 text-left">Active</th>
+                <th className="px-3 py-2 text-left">Bot Active</th>
                 <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -81,6 +101,25 @@ export default function AdminDashboard() {
                     <td className="px-3 py-2">{tg.last_seen || "—"}</td>
                     <td className="px-3 py-2">{u.email || "—"}</td>
                     <td className="px-3 py-2">{u.active ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2">
+                      {botId ? (
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={!!u.bot_admin_active}
+                            disabled={busyBot}
+                            onChange={(e) =>
+                              toggleBotActive(botId, e.target.checked)
+                            }
+                          />
+                          <span className="text-xs text-slate-600">
+                            {u.bot_admin_active ? "On" : "Off"}
+                          </span>
+                        </label>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="px-3 py-2">
                       <Link
                         className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
