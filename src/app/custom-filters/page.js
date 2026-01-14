@@ -112,6 +112,25 @@ export default function CustomFiltersPage() {
                     </button>
                   </div>
                 );
+              if (it.slug === "block_baby_seat")
+                return (
+                  <div key={index} className="border-b border-gray-400 pb-4">
+                    <h2 className="font-semibold capitalize text-slate-700">
+                      Block baby seat requests
+                    </h2>
+                    <p>
+                      When active, offers that include baby seat requests will
+                      be rejected automatically.
+                    </p>
+                    <button
+                      className="mt-2 rounded-md bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+                      onClick={() => toggle(it.slug, !it.enabled)}
+                      disabled={busy}
+                    >
+                      {it.enabled ? "Deactivate" : "Activate"}
+                    </button>
+                  </div>
+                );
             })
           )}
         </div>
