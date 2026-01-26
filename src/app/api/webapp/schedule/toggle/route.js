@@ -2,6 +2,7 @@ export async function POST(req) {
   const tma = req.headers.get("x-telegram-init-data") || "";
   const url = new URL(req.url);
   const botId = url.searchParams.get("bot_id") || "";
+  const asUser = url.searchParams.get("as_user") || "";
   const { day } = await req.json();
   if (!tma)
     return new Response(JSON.stringify({ error: "missing init data" }), {
@@ -13,7 +14,10 @@ export async function POST(req) {
     });
 
   const upstream = process.env.API_URL;
-  const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+  const qsParams = new URLSearchParams();
+  if (botId) qsParams.set("bot_id", botId);
+  if (asUser) qsParams.set("as_user", asUser);
+  const qs = qsParams.toString() ? `?${qsParams.toString()}` : "";
   const r = await fetch(`${upstream}/webapp/days/toggle${qs}`, {
     method: "POST",
     headers: {

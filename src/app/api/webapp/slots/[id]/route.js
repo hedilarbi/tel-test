@@ -7,12 +7,16 @@ export async function DELETE(req, { params }) {
   const url = new URL(req.url);
   const tma = url.searchParams.get("tma") || "";
   const botId = url.searchParams.get("bot_id") || "";
+  const asUser = url.searchParams.get("as_user") || "";
 
   // prefer incoming Authorization header; fallback to query ?tma=
   const incomingAuth = req.headers.get("authorization") || "";
   const authHeader = incomingAuth || (tma ? `tma ${tma}` : "");
 
-  const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+  const qsParams = new URLSearchParams();
+  if (botId) qsParams.set("bot_id", botId);
+  if (asUser) qsParams.set("as_user", asUser);
+  const qs = qsParams.toString() ? `?${qsParams.toString()}` : "";
   const upstream = await fetch(`${API_BASE}/webapp/slots/${params.id}${qs}`, {
     method: "DELETE",
     headers: {

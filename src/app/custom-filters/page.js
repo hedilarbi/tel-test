@@ -13,11 +13,18 @@ export default function CustomFiltersPage() {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("bot_id") || "";
   }, []);
+  const asUser = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("as_user") || "";
+  }, []);
   const API_BASE = "/api";
   const withBotId = (url) => {
-    if (!botId) return url;
+    const params = new URLSearchParams();
+    if (botId) params.set("bot_id", botId);
+    if (asUser) params.set("as_user", asUser);
+    if (!params.toString()) return url;
     const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}bot_id=${encodeURIComponent(botId)}`;
+    return `${url}${sep}${params.toString()}`;
   };
 
   useEffect(() => {

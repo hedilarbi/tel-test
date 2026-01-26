@@ -52,6 +52,7 @@ export default function CurrentSchedulePage() {
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
   const [initDataRaw, setInitDataRaw] = React.useState("");
   const [botId, setBotId] = React.useState("");
+  const [asUser, setAsUser] = React.useState("");
 
   React.useEffect(() => {
     if (!tg) return;
@@ -62,6 +63,10 @@ export default function CurrentSchedulePage() {
       const bid = new URLSearchParams(window.location.search).get("bot_id");
       if (bid) setBotId(bid);
     } catch {}
+    try {
+      const au = new URLSearchParams(window.location.search).get("as_user");
+      if (au) setAsUser(au);
+    } catch {}
   }, [tg]);
 
   React.useEffect(() => {
@@ -70,10 +75,15 @@ export default function CurrentSchedulePage() {
       setLoading(true);
       setErr("");
       try {
-        const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
-        const data = await fetchJSON(`/api/webapp/rides${qs}`, {
+        const qs = new URLSearchParams();
+        if (botId) qs.set("bot_id", botId);
+        if (asUser) qs.set("as_user", asUser);
+        const data = await fetchJSON(
+          `/api/webapp/rides${qs.toString() ? `?${qs.toString()}` : ""}`,
+          {
           headers: { "x-telegram-init-data": initDataRaw },
-        });
+          }
+        );
         const list = Array.isArray(data?.results) ? data.results : [];
         setRides(list);
       } catch (e) {

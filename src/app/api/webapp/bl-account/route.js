@@ -36,9 +36,11 @@ export async function GET(req) {
   const auth = req.headers.get("authorization") || "";
   const tma = req.nextUrl.searchParams.get("tma") || "";
   const botId = req.nextUrl.searchParams.get("bot_id") || "";
+  const asUser = req.nextUrl.searchParams.get("as_user") || "";
   const qs = new URLSearchParams();
   if (tma) qs.set("tma", tma);
   if (botId) qs.set("bot_id", botId);
+  if (asUser) qs.set("as_user", asUser);
   const fwdUrl = `${API_BASE}/webapp/bl-account${
     qs.toString() ? `?${qs.toString()}` : ""
   }`;
@@ -76,9 +78,11 @@ export async function POST(req) {
   const auth = req.headers.get("authorization") || "";
   const tma = req.nextUrl.searchParams.get("tma") || "";
   const botId = req.nextUrl.searchParams.get("bot_id") || "";
+  const asUser = req.nextUrl.searchParams.get("as_user") || "";
   const qs = new URLSearchParams();
   if (tma) qs.set("tma", tma);
   if (botId) qs.set("bot_id", botId);
+  if (asUser) qs.set("as_user", asUser);
   const fwdUrl = `${API_BASE}/webapp/bl-account${
     qs.toString() ? `?${qs.toString()}` : ""
   }`;

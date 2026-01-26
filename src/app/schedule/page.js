@@ -24,6 +24,7 @@ async function fetchJSON(url, options = {}) {
 export default function SchedulePage() {
   const [initDataRaw, setInitDataRaw] = React.useState("");
   const [botId, setBotId] = React.useState("");
+  const [asUser, setAsUser] = React.useState("");
   const [viewDate, setViewDate] = React.useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -44,6 +45,10 @@ export default function SchedulePage() {
         if (bid) setBotId(bid);
       } catch {}
       try {
+        const au = new URLSearchParams(window.location.search).get("as_user");
+        if (au) setAsUser(au);
+      } catch {}
+      try {
         wa.setHeaderColor && wa.setHeaderColor("#ffffff");
       } catch {}
       try {
@@ -58,10 +63,15 @@ export default function SchedulePage() {
       setLoading(true);
       setErr("");
       try {
-        const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
-        const j = await fetchJSON(`/api/webapp/schedule/days${qs}`, {
-          headers: { "x-telegram-init-data": initDataRaw },
-        });
+        const qs = new URLSearchParams();
+        if (botId) qs.set("bot_id", botId);
+        if (asUser) qs.set("as_user", asUser);
+        const j = await fetchJSON(
+          `/api/webapp/schedule/days${qs.toString() ? `?${qs.toString()}` : ""}`,
+          {
+            headers: { "x-telegram-init-data": initDataRaw },
+          }
+        );
         setBlocked(new Set(j?.days || []));
       } catch (e) {
         setErr(e.message || "Failed to load");
@@ -91,8 +101,10 @@ export default function SchedulePage() {
     blocked.has(key) ? optimistic.delete(key) : optimistic.add(key);
     setBlocked(optimistic);
     try {
-      const qs = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
-      await fetchJSON(`/api/webapp/schedule/toggle${qs}`, {
+      const qs = new URLSearchParams();
+      if (botId) qs.set("bot_id", botId);
+      if (asUser) qs.set("as_user", asUser);
+      await fetchJSON(`/api/webapp/schedule/toggle${qs.toString() ? `?${qs.toString()}` : ""}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
