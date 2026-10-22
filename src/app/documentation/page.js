@@ -120,14 +120,15 @@ function ContentFR() {
         <Section
           id="fr-km"
           icon="📏"
-          title="Distance minimum / maximum (km)"
+          title="Distance minimum / maximum (km ou miles)"
           steps={[
             "Menu principal → « ⚙️ Filters ».",
-            "Appuie sur « 📏 Change min km » ou « 📏 Change max km ».",
-            "Envoie un nombre (entier ou décimal), par exemple 50 pour le minimum ou 150 pour le maximum.",
+            "Le bouton affiche « 📏 Change min km » ou « 📏 Change min mi » selon l'unité choisie dans tes Settings (voir section « Unité de distance » dans Paramètres).",
+            "Appuie sur « Change min (km/mi) » ou « Change max (km/mi) ».",
+            "Envoie un nombre (entier ou décimal) dans l'unité affichée, par exemple 50 pour le minimum ou 150 pour le maximum.",
             "Les courses dont la distance estimée est hors de cette plage seront automatiquement refusées.",
           ]}
-          tip="C'est exactement ce champ qui sert à filtrer les courses « trop courtes » ou « trop longues »."
+          tip="C'est exactement ce champ qui sert à filtrer les courses « trop courtes » ou « trop longues ». Si tu préfères raisonner en miles (ex : utilisateurs aux USA), change l'unité dans Settings avant de saisir tes valeurs."
           screenshotId="fr-km-1"
           screenshotLabel="Capture : changement de la distance min/max"
         />
@@ -315,6 +316,20 @@ function ContentFR() {
           screenshotLabel="Capture : auto refresh token"
         />
         <Section
+          id="fr-distanceunit"
+          icon="📏"
+          title="Unité de distance (km / miles)"
+          steps={[
+            "Menu principal → « 🔧 Settings ».",
+            "Repère le bouton « 📏 Distance unit: KM » (ou « MI » s'il est déjà en miles).",
+            "Appuie dessus pour basculer entre kilomètres et miles.",
+            "Dès que tu changes l'unité, le menu Filtres affiche et accepte désormais tes distances min/max dans cette nouvelle unité (ex : « Change min mi » au lieu de « Change min km »).",
+          ]}
+          tip="Utile pour les chauffeurs basés aux USA qui pensent en miles plutôt qu'en kilomètres — pas besoin de faire la conversion toi-même, le bot s'en occupe en arrière-plan."
+          screenshotId="fr-distanceunit-1"
+          screenshotLabel="Capture : bouton Distance unit (km/mi) dans Settings"
+        />
+        <Section
           id="fr-notifications"
           icon="🔔"
           title="Notifications"
@@ -455,14 +470,15 @@ function ContentEN() {
         <Section
           id="en-km"
           icon="📏"
-          title="Minimum / maximum distance (km)"
+          title="Minimum / maximum distance (km or miles)"
           steps={[
             "Main menu → \"⚙️ Filters\".",
-            "Tap \"📏 Change min km\" or \"📏 Change max km\".",
-            "Send a number (integer or decimal), e.g. 50 for minimum or 150 for maximum.",
+            "The button shows \"📏 Change min km\" or \"📏 Change min mi\" depending on the unit set in your Settings (see \"Distance unit\" under Settings).",
+            "Tap \"Change min (km/mi)\" or \"Change max (km/mi)\".",
+            "Send a number (integer or decimal) in the displayed unit, e.g. 50 for minimum or 150 for maximum.",
             "Rides whose estimated distance falls outside this range will be automatically rejected.",
           ]}
-          tip={`This is exactly the field used to filter out rides that are "too short" or "too long".`}
+          tip={`This is exactly the field used to filter out rides that are "too short" or "too long". If you think in miles (e.g. US-based drivers), switch the unit in Settings before entering your values.`}
           screenshotId="en-km-1"
           screenshotLabel="Screenshot: changing min/max distance"
         />
@@ -650,6 +666,20 @@ function ContentEN() {
           screenshotLabel="Screenshot: token auto refresh"
         />
         <Section
+          id="en-distanceunit"
+          icon="📏"
+          title="Distance unit (km / miles)"
+          steps={[
+            "Main menu → \"🔧 Settings\".",
+            "Find the \"📏 Distance unit: KM\" button (or \"MI\" if it's already set to miles).",
+            "Tap it to switch between kilometers and miles.",
+            "As soon as you change the unit, the Filters menu displays and accepts your min/max distance in that new unit (e.g. \"Change min mi\" instead of \"Change min km\").",
+          ]}
+          tip="Handy for US-based drivers who think in miles rather than kilometers — no need to convert anything yourself, the bot handles it behind the scenes."
+          screenshotId="en-distanceunit-1"
+          screenshotLabel="Screenshot: Distance unit (km/mi) button in Settings"
+        />
+        <Section
           id="en-notifications"
           icon="🔔"
           title="Notifications"
@@ -737,7 +767,7 @@ function ContentEN() {
 /* ---------------------------------------------------------------------- */
 
 export default function DocumentationPage() {
-  const [lang, setLang] = useState("fr");
+  const [lang, setLang] = useState("en");
 
   useEffect(() => {
     const wa =
