@@ -19,6 +19,21 @@ function ImagePlaceholder({ id, label }) {
   );
 }
 
+function Screenshot({ id, label, src }) {
+  if (!src) return <ImagePlaceholder id={id} label={label} />;
+  return (
+    <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/${src}`}
+        alt={label}
+        loading="lazy"
+        className="w-full object-contain"
+      />
+    </div>
+  );
+}
+
 function Tip({ children }) {
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -27,7 +42,7 @@ function Tip({ children }) {
   );
 }
 
-function Section({ id, icon, title, steps, tip, screenshotId, screenshotLabel, defaultOpen = false }) {
+function Section({ id, icon, title, steps, tip, screenshotId, screenshotLabel, image, defaultOpen = false }) {
   return (
     <details
       id={id}
@@ -49,7 +64,9 @@ function Section({ id, icon, title, steps, tip, screenshotId, screenshotLabel, d
           ))}
         </ol>
         {tip && <Tip>{tip}</Tip>}
-        <ImagePlaceholder id={screenshotId} label={screenshotLabel} />
+        {(image || screenshotId) && (
+          <Screenshot id={screenshotId} label={screenshotLabel} src={image} />
+        )}
       </div>
     </details>
   );
@@ -60,6 +77,16 @@ function CategoryHeading({ children }) {
     <h2 className="mt-8 mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
       {children}
     </h2>
+  );
+}
+
+function CategoryIntro({ image, caption }) {
+  return (
+    <div className="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/${image}`} alt={caption} loading="lazy" className="w-full object-contain" />
+      <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">{caption}</p>
+    </div>
   );
 }
 
@@ -84,8 +111,6 @@ function ContentFR() {
             "Le menu principal s'affiche avec le statut du bot (Actif / Inactif).",
           ]}
           tip="Si tu reçois un message « déjà assigné à un autre utilisateur », cela veut dire que ce bot a déjà été relié à un autre compte Telegram. Contacte l'administrateur."
-          screenshotId="fr-start-1"
-          screenshotLabel="Capture : écran /start et menu principal"
         />
         <Section
           id="fr-activate"
@@ -98,10 +123,15 @@ function ContentFR() {
           ]}
           screenshotId="fr-activate-1"
           screenshotLabel="Capture : bouton Activate / Deactivate"
+          image="activate.jpeg"
         />
       </div>
 
       <CategoryHeading>⚙️ Filtres</CategoryHeading>
+      <CategoryIntro
+        image="filters.jpeg"
+        caption="Depuis le menu principal, appuie sur « ⚙️ Filters » pour ouvrir cette section."
+      />
       <div className="space-y-3">
         <Section
           id="fr-price"
@@ -116,6 +146,7 @@ function ContentFR() {
           tip="Laisse le maximum à 0 si tu ne veux pas de limite haute."
           screenshotId="fr-price-1"
           screenshotLabel="Capture : changement du prix min/max"
+          image="price.jpeg"
         />
         <Section
           id="fr-km"
@@ -131,6 +162,7 @@ function ContentFR() {
           tip="C'est exactement ce champ qui sert à filtrer les courses « trop courtes » ou « trop longues ». Si tu préfères raisonner en miles (ex : utilisateurs aux USA), change l'unité dans Settings avant de saisir tes valeurs."
           screenshotId="fr-km-1"
           screenshotLabel="Capture : changement de la distance min/max"
+          image="distance.jpeg"
         />
         <Section
           id="fr-duration"
@@ -143,6 +175,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-duration-1"
           screenshotLabel="Capture : changement de la durée minimale"
+          image="duration.jpeg"
         />
         <Section
           id="fr-gap"
@@ -155,6 +188,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-gap-1"
           screenshotLabel="Capture : changement du délai (gap)"
+          image="gap.jpeg"
         />
         <Section
           id="fr-workschedule"
@@ -169,6 +203,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-workschedule-1"
           screenshotLabel="Capture : horaire de travail (début/fin)"
+          image="work.jpeg"
         />
         <Section
           id="fr-classes"
@@ -182,6 +217,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-classes-1"
           screenshotLabel="Capture : menu des classes de véhicules"
+          image="classes.jpeg"
         />
         <Section
           id="fr-blacklist-pickup"
@@ -195,6 +231,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-blacklist-pickup-1"
           screenshotLabel="Capture : liste noire pickup"
+          image="location.jpeg"
         />
         <Section
           id="fr-blacklist-dropoff"
@@ -207,6 +244,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-blacklist-dropoff-1"
           screenshotLabel="Capture : liste noire dropoff"
+          image="location.jpeg"
         />
         <Section
           id="fr-blacklist-flight"
@@ -219,6 +257,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-blacklist-flight-1"
           screenshotLabel="Capture : blocage de vols"
+          image="flight.jpeg"
         />
         <Section
           id="fr-blockeddays"
@@ -232,6 +271,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-blockeddays-1"
           screenshotLabel="Capture : calendrier des jours bloqués"
+          image="block_days.jpeg"
         />
         <Section
           id="fr-bookedslots"
@@ -245,6 +285,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-bookedslots-1"
           screenshotLabel="Capture : créneaux réservés"
+          image="booked_slots.jpeg"
         />
         <Section
           id="fr-currentschedule"
@@ -257,6 +298,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-currentschedule-1"
           screenshotLabel="Capture : vue de l'horaire actuel"
+          image="schedule.jpeg"
         />
         <Section
           id="fr-customfilters"
@@ -272,22 +314,15 @@ function ContentFR() {
           tip="Si tu ne vois aucun filtre personnalisé, c'est normal — ils sont ajoutés par l'administrateur selon les besoins."
           screenshotId="fr-customfilters-1"
           screenshotLabel="Capture : filtres personnalisés"
-        />
-        <Section
-          id="fr-showallfilters"
-          icon="⚖️"
-          title="Voir tous les filtres actuels (résumé)"
-          steps={[
-            "Menu principal → « ⚙️ Filters » → « ⚖️ Show current filters ».",
-            "Un résumé complet s'affiche : prix, distance, horaires, classes, listes noires, formules de fin de course, jours bloqués et créneaux réservés.",
-            "Pratique pour vérifier d'un coup tous tes réglages actuels.",
-          ]}
-          screenshotId="fr-showallfilters-1"
-          screenshotLabel="Capture : résumé de tous les filtres"
+          image="custom_filters.jpeg"
         />
       </div>
 
       <CategoryHeading>🔧 Paramètres</CategoryHeading>
+      <CategoryIntro
+        image="settings.jpeg"
+        caption="Depuis le menu principal, appuie sur « 🔧 Settings » pour ouvrir cette section."
+      />
       <div className="space-y-3">
         <Section
           id="fr-mobilesession"
@@ -302,6 +337,7 @@ function ContentFR() {
           tip="Sans token valide, le bot ne peut pas accepter de courses en ton nom."
           screenshotId="fr-mobilesession-1"
           screenshotLabel="Capture : ajout du token mobile"
+          image="mobile_session.jpeg"
         />
         <Section
           id="fr-autorefresh"
@@ -314,6 +350,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-autorefresh-1"
           screenshotLabel="Capture : auto refresh token"
+          image="auto_refresh.jpeg"
         />
         <Section
           id="fr-distanceunit"
@@ -328,6 +365,7 @@ function ContentFR() {
           tip="Utile pour les chauffeurs basés aux USA qui pensent en miles plutôt qu'en kilomètres — pas besoin de faire la conversion toi-même, le bot s'en occupe en arrière-plan."
           screenshotId="fr-distanceunit-1"
           screenshotLabel="Capture : bouton Distance unit (km/mi) dans Settings"
+          image="distance_unit.jpeg"
         />
         <Section
           id="fr-notifications"
@@ -340,6 +378,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-notifications-1"
           screenshotLabel="Capture : menu des notifications"
+          image="notifications.jpeg"
         />
         <Section
           id="fr-blaccount"
@@ -353,19 +392,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-blaccount-1"
           screenshotLabel="Capture : formulaire compte BL"
-        />
-        <Section
-          id="fr-timezone"
-          icon="🌍"
-          title="Fuseau horaire (réservé à l'administrateur)"
-          steps={[
-            "Le fuseau horaire d'un utilisateur ne peut être modifié QUE par l'administrateur, pas par l'utilisateur lui-même.",
-            "L'administrateur va dans son bot admin → « /listbots » → sélectionne le bot concerné → « 🔧 Settings » → « 🌍 Change timezone ».",
-            "Il envoie le nom IANA du fuseau horaire (ex : Africa/Casablanca, America/Toronto).",
-            "Si tu as besoin de corriger ton fuseau horaire, contacte l'administrateur.",
-          ]}
-          screenshotId="fr-timezone-1"
-          screenshotLabel="Capture : changement du fuseau horaire (vue admin)"
+          image="bl_account.jpeg"
         />
       </div>
 
@@ -382,6 +409,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-statistic-1"
           screenshotLabel="Capture : résumé des statistiques"
+          image="stats.jpeg"
         />
         <Section
           id="fr-checkedstatistic"
@@ -394,6 +422,7 @@ function ContentFR() {
           ]}
           screenshotId="fr-checkedstatistic-1"
           screenshotLabel="Capture : historique détaillé des offres"
+          image="checked_stats.jpeg"
         />
       </div>
 
@@ -434,8 +463,6 @@ function ContentEN() {
             "The main menu appears with the bot's status (Active / Not active).",
           ]}
           tip={`If you get an "already assigned to another user" message, this bot has already been claimed by a different Telegram account. Contact the administrator.`}
-          screenshotId="en-start-1"
-          screenshotLabel="Screenshot: /start screen and main menu"
         />
         <Section
           id="en-activate"
@@ -448,10 +475,15 @@ function ContentEN() {
           ]}
           screenshotId="en-activate-1"
           screenshotLabel="Screenshot: Activate / Deactivate button"
+          image="activate.jpeg"
         />
       </div>
 
       <CategoryHeading>⚙️ Filters</CategoryHeading>
+      <CategoryIntro
+        image="filters.jpeg"
+        caption={`From the main menu, tap "⚙️ Filters" to open this section.`}
+      />
       <div className="space-y-3">
         <Section
           id="en-price"
@@ -466,6 +498,7 @@ function ContentEN() {
           tip="Leave the maximum at 0 if you don't want an upper limit."
           screenshotId="en-price-1"
           screenshotLabel="Screenshot: changing min/max price"
+          image="price.jpeg"
         />
         <Section
           id="en-km"
@@ -481,6 +514,7 @@ function ContentEN() {
           tip={`This is exactly the field used to filter out rides that are "too short" or "too long". If you think in miles (e.g. US-based drivers), switch the unit in Settings before entering your values.`}
           screenshotId="en-km-1"
           screenshotLabel="Screenshot: changing min/max distance"
+          image="distance.jpeg"
         />
         <Section
           id="en-duration"
@@ -493,6 +527,7 @@ function ContentEN() {
           ]}
           screenshotId="en-duration-1"
           screenshotLabel="Screenshot: changing minimum duration"
+          image="duration.jpeg"
         />
         <Section
           id="en-gap"
@@ -505,6 +540,7 @@ function ContentEN() {
           ]}
           screenshotId="en-gap-1"
           screenshotLabel="Screenshot: changing the gap (delay)"
+          image="gap.jpeg"
         />
         <Section
           id="en-workschedule"
@@ -519,6 +555,7 @@ function ContentEN() {
           ]}
           screenshotId="en-workschedule-1"
           screenshotLabel="Screenshot: work schedule (start/end)"
+          image="work.jpeg"
         />
         <Section
           id="en-classes"
@@ -532,6 +569,7 @@ function ContentEN() {
           ]}
           screenshotId="en-classes-1"
           screenshotLabel="Screenshot: vehicle classes menu"
+          image="classes.jpeg"
         />
         <Section
           id="en-blacklist-pickup"
@@ -545,6 +583,7 @@ function ContentEN() {
           ]}
           screenshotId="en-blacklist-pickup-1"
           screenshotLabel="Screenshot: pickup blacklist"
+          image="location.jpeg"
         />
         <Section
           id="en-blacklist-dropoff"
@@ -557,6 +596,7 @@ function ContentEN() {
           ]}
           screenshotId="en-blacklist-dropoff-1"
           screenshotLabel="Screenshot: dropoff blacklist"
+          image="location.jpeg"
         />
         <Section
           id="en-blacklist-flight"
@@ -569,6 +609,7 @@ function ContentEN() {
           ]}
           screenshotId="en-blacklist-flight-1"
           screenshotLabel="Screenshot: flight blocking"
+          image="flight.jpeg"
         />
         <Section
           id="en-blockeddays"
@@ -582,6 +623,7 @@ function ContentEN() {
           ]}
           screenshotId="en-blockeddays-1"
           screenshotLabel="Screenshot: blocked days calendar"
+          image="block_days.jpeg"
         />
         <Section
           id="en-bookedslots"
@@ -595,6 +637,7 @@ function ContentEN() {
           ]}
           screenshotId="en-bookedslots-1"
           screenshotLabel="Screenshot: booked slots"
+          image="booked_slots.jpeg"
         />
         <Section
           id="en-currentschedule"
@@ -607,6 +650,7 @@ function ContentEN() {
           ]}
           screenshotId="en-currentschedule-1"
           screenshotLabel="Screenshot: current schedule view"
+          image="schedule.jpeg"
         />
         <Section
           id="en-customfilters"
@@ -622,22 +666,15 @@ function ContentEN() {
           tip="If you don't see any custom filter, that's normal — they're added by the administrator as needed."
           screenshotId="en-customfilters-1"
           screenshotLabel="Screenshot: custom filters"
-        />
-        <Section
-          id="en-showallfilters"
-          icon="⚖️"
-          title="View all current filters (summary)"
-          steps={[
-            "Main menu → \"⚙️ Filters\" → \"⚖️ Show current filters\".",
-            "A full summary is displayed: price, distance, schedule, classes, blacklists, end-time formulas, blocked days and booked slots.",
-            "Handy to check all your current settings at once.",
-          ]}
-          screenshotId="en-showallfilters-1"
-          screenshotLabel="Screenshot: full filters summary"
+          image="custom_filters.jpeg"
         />
       </div>
 
       <CategoryHeading>🔧 Settings</CategoryHeading>
+      <CategoryIntro
+        image="settings.jpeg"
+        caption={`From the main menu, tap "🔧 Settings" to open this section.`}
+      />
       <div className="space-y-3">
         <Section
           id="en-mobilesession"
@@ -652,6 +689,7 @@ function ContentEN() {
           tip="Without a valid token, the bot cannot accept rides on your behalf."
           screenshotId="en-mobilesession-1"
           screenshotLabel="Screenshot: adding the mobile token"
+          image="mobile_session.jpeg"
         />
         <Section
           id="en-autorefresh"
@@ -664,6 +702,7 @@ function ContentEN() {
           ]}
           screenshotId="en-autorefresh-1"
           screenshotLabel="Screenshot: token auto refresh"
+          image="auto_refresh.jpeg"
         />
         <Section
           id="en-distanceunit"
@@ -678,6 +717,7 @@ function ContentEN() {
           tip="Handy for US-based drivers who think in miles rather than kilometers — no need to convert anything yourself, the bot handles it behind the scenes."
           screenshotId="en-distanceunit-1"
           screenshotLabel="Screenshot: Distance unit (km/mi) button in Settings"
+          image="distance_unit.jpeg"
         />
         <Section
           id="en-notifications"
@@ -690,6 +730,7 @@ function ContentEN() {
           ]}
           screenshotId="en-notifications-1"
           screenshotLabel="Screenshot: notifications menu"
+          image="notifications.jpeg"
         />
         <Section
           id="en-blaccount"
@@ -703,19 +744,7 @@ function ContentEN() {
           ]}
           screenshotId="en-blaccount-1"
           screenshotLabel="Screenshot: BL account form"
-        />
-        <Section
-          id="en-timezone"
-          icon="🌍"
-          title="Timezone (admin only)"
-          steps={[
-            "A user's timezone can ONLY be changed by the administrator, not by the user themself.",
-            "The administrator goes to the admin bot → \"/listbots\" → selects the relevant bot → \"🔧 Settings\" → \"🌍 Change timezone\".",
-            "They send the IANA timezone name (e.g. Africa/Casablanca, America/Toronto).",
-            "If you need your timezone corrected, contact the administrator.",
-          ]}
-          screenshotId="en-timezone-1"
-          screenshotLabel="Screenshot: changing timezone (admin view)"
+          image="bl_account.jpeg"
         />
       </div>
 
@@ -732,6 +761,7 @@ function ContentEN() {
           ]}
           screenshotId="en-statistic-1"
           screenshotLabel="Screenshot: statistics summary"
+          image="stats.jpeg"
         />
         <Section
           id="en-checkedstatistic"
@@ -744,6 +774,7 @@ function ContentEN() {
           ]}
           screenshotId="en-checkedstatistic-1"
           screenshotLabel="Screenshot: detailed offer history"
+          image="checked_stats.jpeg"
         />
       </div>
 
