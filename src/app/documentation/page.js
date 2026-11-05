@@ -368,6 +368,17 @@ function ContentFR() {
           image="distance_unit.jpeg"
         />
         <Section
+          id="fr-language"
+          icon="🌐"
+          title="Langue (français / anglais)"
+          steps={[
+            "Menu principal → « 🔧 Paramètres ».",
+            "Appuie sur « 🌐 Langue : Français » pour passer en anglais (ou « 🌐 Language: English » pour revenir au français).",
+            "La langue change immédiatement pour les menus du bot et pour toutes les notifications d'offres (en-têtes, raisons de refus, alertes de token).",
+          ]}
+          tip="Par défaut, le bot utilise la langue de ton application Telegram."
+        />
+        <Section
           id="fr-notifications"
           icon="🔔"
           title="Notifications"
@@ -718,6 +729,17 @@ function ContentEN() {
           screenshotId="en-distanceunit-1"
           screenshotLabel="Screenshot: Distance unit (km/mi) button in Settings"
           image="distance_unit.jpeg"
+        />
+        <Section
+          id="en-language"
+          icon="🌐"
+          title="Language (English / French)"
+          steps={[
+            "Main menu → \"🔧 Settings\".",
+            "Tap \"🌐 Language: English\" to switch to French (or \"🌐 Langue : Français\" to switch back to English).",
+            "The language changes right away for the bot menus and for all offer notifications (headers, rejection reasons, token alerts).",
+          ]}
+          tip="By default, the bot uses the language of your Telegram app."
         />
         <Section
           id="en-notifications"

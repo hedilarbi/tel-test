@@ -17,6 +17,8 @@ export default function ManageUser() {
   const [formulas, setFormulas] = useState([]); // ⬅️ new
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [opEnabled, setOpEnabled] = useState(false);
+  const [opCount, setOpCount] = useState(0);
 
   async function loadFilters() {
     try {
@@ -44,9 +46,41 @@ export default function ManageUser() {
     }
   }
 
+  async function loadOpCh() {
+    try {
+      const r = await fetch(
+        withBotId(`/api/admin/users/${uid}/operation-chauffeurs`),
+        { cache: "no-store" }
+      );
+      const j = await r.json();
+      setOpEnabled(!!j?.enabled);
+      setOpCount(j?.selected_count || 0);
+    } catch (e) {
+      // non-blocking
+    }
+  }
+
+  async function toggleOpCh(next) {
+    setBusy(true);
+    try {
+      setErr("");
+      await fetch(withBotId(`/api/admin/users/${uid}/operation-chauffeurs`), {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ enabled: next }),
+      });
+      await loadOpCh();
+    } catch (e) {
+      setErr(e?.message || "Toggle failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   useEffect(() => {
     loadFilters();
     loadFormulas();
+    loadOpCh();
   }, [uid, botId]);
 
   const assignedSlugs = new Set((data.assigned || []).map((a) => a.slug));
@@ -273,6 +307,35 @@ export default function ManageUser() {
             {err}
           </div>
         )}
+
+        {/* Fleet capacity feature (multi-chauffeur availability check) */}
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold">Included chauffeurs (fleet capacity)</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                When enabled, the “👥 Included chauffeurs” button appears in the bot (admin and
+                client) and the poller accepts offers while a selected chauffeur stays free on the
+                slot. When off, the bot behaves as before.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Selected chauffeurs: {opCount}{" "}
+                {opEnabled && opCount === 0 ? "— select them in the bot menu" : ""}
+              </p>
+            </div>
+            <label className="flex shrink-0 items-center gap-2 text-sm">
+              <span className={opEnabled ? "text-green-600 font-medium" : "text-slate-500"}>
+                {opEnabled ? "On" : "Off"}
+              </span>
+              <input
+                type="checkbox"
+                checked={opEnabled}
+                disabled={busy}
+                onChange={(e) => toggleOpCh(e.target.checked)}
+              />
+            </label>
+          </div>
+        </section>
 
         <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Assigned filters */}
