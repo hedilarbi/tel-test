@@ -47,6 +47,9 @@ export default function CurrentSchedulePage() {
   const [rides, setRides] = React.useState([]);
   const [err, setErr] = React.useState("");
   const [loading, setLoading] = React.useState(true);
+  const [drivers, setDrivers] = React.useState([]);
+  const [isCompany, setIsCompany] = React.useState(false);
+  const [driverFilter, setDriverFilter] = React.useState("all"); // all | unassigned | <uuid>
 
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
@@ -69,6 +72,26 @@ export default function CurrentSchedulePage() {
     } catch {}
   }, [tg]);
 
+  // Load the company's chauffeurs (only a multi-driver account shows the filter).
+  React.useEffect(() => {
+    if (!initDataRaw) return;
+    (async () => {
+      try {
+        const qs = new URLSearchParams();
+        if (botId) qs.set("bot_id", botId);
+        if (asUser) qs.set("as_user", asUser);
+        const data = await fetchJSON(
+          `/api/webapp/fleet-drivers${qs.toString() ? `?${qs.toString()}` : ""}`,
+          { headers: { "x-telegram-init-data": initDataRaw } }
+        );
+        setDrivers(Array.isArray(data?.drivers) ? data.drivers : []);
+        setIsCompany(!!data?.is_company);
+      } catch {
+        // non-blocking: no filter, falls back to the personal schedule
+      }
+    })();
+  }, [initDataRaw, botId]);
+
   React.useEffect(() => {
     if (!initDataRaw) return;
     (async () => {
@@ -78,6 +101,7 @@ export default function CurrentSchedulePage() {
         const qs = new URLSearchParams();
         if (botId) qs.set("bot_id", botId);
         if (asUser) qs.set("as_user", asUser);
+        if (isCompany) qs.set("driver", driverFilter);
         const data = await fetchJSON(
           `/api/webapp/rides${qs.toString() ? `?${qs.toString()}` : ""}`,
           {
@@ -92,7 +116,7 @@ export default function CurrentSchedulePage() {
         setLoading(false);
       }
     })();
-  }, [initDataRaw, botId]);
+  }, [initDataRaw, botId, isCompany, driverFilter]);
 
   // group by day of pickup
   const grouped = React.useMemo(() => {
@@ -117,7 +141,28 @@ export default function CurrentSchedulePage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           Current schedule
         </h1>
-        <p className="text-sm text-slate-500">Your upcoming rides</p>
+        <p className="text-sm text-slate-500">
+          {isCompany ? "Company schedule" : "Your upcoming rides"}
+        </p>
+
+        {isCompany && (
+          <div className="mt-3">
+            <label className="text-xs text-slate-500">Chauffeur</label>
+            <select
+              value={driverFilter}
+              onChange={(e) => setDriverFilter(e.target.value)}
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm"
+            >
+              <option value="all">All company</option>
+              <option value="unassigned">Unassigned</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {loading ? (
           <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-sm">
@@ -197,6 +242,11 @@ export default function CurrentSchedulePage() {
                           </summary>
                           <div className="mt-2 space-y-1 text-xs text-slate-600">
                             <div>Ride status: {it.rideStatus || "—"}</div>
+                            {isCompany && (
+                              <div>
+                                Chauffeur: {it.assignedDriverName || "Unassigned"}
+                              </div>
+                            )}
                             <div>Flight: {it.flight?.number || "—"}</div>
                             <div>
                               Distance:{" "}
