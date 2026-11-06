@@ -50,6 +50,7 @@ export default function CurrentSchedulePage() {
   const [drivers, setDrivers] = React.useState([]);
   const [isCompany, setIsCompany] = React.useState(false);
   const [driverFilter, setDriverFilter] = React.useState("all"); // all | unassigned | <uuid>
+  const [driversReady, setDriversReady] = React.useState(false);
 
   const tg =
     typeof window !== "undefined" ? window.Telegram?.WebApp : undefined;
@@ -88,12 +89,16 @@ export default function CurrentSchedulePage() {
         setIsCompany(!!data?.is_company);
       } catch {
         // non-blocking: no filter, falls back to the personal schedule
+      } finally {
+        // Only start loading rides AFTER this call — it refreshes the portal token once,
+        // so the rides fetch reuses it instead of racing a second concurrent login.
+        setDriversReady(true);
       }
     })();
   }, [initDataRaw, botId]);
 
   React.useEffect(() => {
-    if (!initDataRaw) return;
+    if (!initDataRaw || !driversReady) return;
     (async () => {
       setLoading(true);
       setErr("");
@@ -116,7 +121,7 @@ export default function CurrentSchedulePage() {
         setLoading(false);
       }
     })();
-  }, [initDataRaw, botId, isCompany, driverFilter]);
+  }, [initDataRaw, botId, isCompany, driverFilter, driversReady]);
 
   // group by day of pickup
   const grouped = React.useMemo(() => {
